@@ -150,6 +150,7 @@ async function globalSearch(params: SearchParams): Promise<{
   const searchPattern = `%${query.toLowerCase()}%`;
 
   const workspaceFilter = and(
+    eq(projectTable.isTemplate, false),
     workspaceId
       ? eq(projectTable.workspaceId, workspaceId)
       : inArray(projectTable.workspaceId, accessibleWorkspaceIds),

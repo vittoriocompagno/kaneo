@@ -23,7 +23,9 @@ import { CSS } from "@dnd-kit/utilities";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import {
+  BookmarkPlus,
   ChevronRight,
+  Copy,
   Folder,
   Forward,
   MoreHorizontal,
@@ -143,8 +145,10 @@ export function NavProjects() {
       strict: false,
     });
 
-  const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] =
-    useState(false);
+  const [createProjectAction, setCreateProjectAction] = useState<{
+    mode: "create" | "duplicate" | "template";
+    sourceProject?: { id: string; name: string; icon: string | null };
+  } | null>(null);
   const [isDeleteProjectModalOpen, setIsDeleteProjectModalOpen] =
     useState(false);
   const [projectToDeleteId, setProjectToDeleteID] = useState<string | null>(
@@ -235,7 +239,7 @@ export function NavProjects() {
             <SidebarGroupAction
               className="top-2 right-2 text-sidebar-foreground/70"
               title={t("navigation:projectList.addProject")}
-              onClick={() => setIsCreateProjectModalOpen(true)}
+              onClick={() => setCreateProjectAction({ mode: "create" })}
             >
               <Plus />
               <span className="sr-only">
@@ -354,6 +358,43 @@ export function NavProjects() {
                                   {t("navigation:projectList.projectSettings")}
                                 </span>
                               </DropdownMenuItem>
+                              {canCreate && (
+                                <>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem
+                                    className="h-7 items-start cursor-pointer text-sm"
+                                    onClick={() =>
+                                      setCreateProjectAction({
+                                        mode: "duplicate",
+                                        sourceProject: project,
+                                      })
+                                    }
+                                  >
+                                    <Copy className="text-muted-foreground" />
+                                    <span>
+                                      {t(
+                                        "navigation:projectList.duplicateProject",
+                                      )}
+                                    </span>
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    className="h-7 items-start cursor-pointer text-sm"
+                                    onClick={() =>
+                                      setCreateProjectAction({
+                                        mode: "template",
+                                        sourceProject: project,
+                                      })
+                                    }
+                                  >
+                                    <BookmarkPlus className="text-muted-foreground" />
+                                    <span>
+                                      {t(
+                                        "navigation:projectList.saveAsTemplate",
+                                      )}
+                                    </span>
+                                  </DropdownMenuItem>
+                                </>
+                              )}
                               {canDeleteProject && (
                                 <>
                                   <DropdownMenuSeparator />
@@ -398,10 +439,14 @@ export function NavProjects() {
         </SidebarGroup>
       </Collapsible>
 
-      <CreateProjectModal
-        open={isCreateProjectModalOpen}
-        onClose={() => setIsCreateProjectModalOpen(false)}
-      />
+      {createProjectAction && (
+        <CreateProjectModal
+          open
+          onClose={() => setCreateProjectAction(null)}
+          mode={createProjectAction.mode}
+          sourceProject={createProjectAction.sourceProject}
+        />
+      )}
 
       <AlertDialog
         open={isDeleteProjectModalOpen}

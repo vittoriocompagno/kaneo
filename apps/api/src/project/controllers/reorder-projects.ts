@@ -34,7 +34,11 @@ async function reorderProjects(
     // ordering without being sent. Ordering here defines each project's current
     // rank, which is what the renumbering below pins them to.
     const existing = await tx
-      .select({ id: projectTable.id, position: projectTable.position })
+      .select({
+        id: projectTable.id,
+        position: projectTable.position,
+        isTemplate: projectTable.isTemplate,
+      })
       .from(projectTable)
       .where(eq(projectTable.workspaceId, workspaceId))
       .orderBy(
@@ -45,7 +49,11 @@ async function reorderProjects(
 
     // Verify ownership of the whole batch before writing anything, so a
     // smuggled foreign id cannot leave the workspace half-renumbered.
-    const ownedIds = new Set(existing.map((project) => project.id));
+    const ownedIds = new Set(
+      existing
+        .filter((project) => !project.isTemplate)
+        .map((project) => project.id),
+    );
     const foreignId = ids.find((id) => !ownedIds.has(id));
 
     if (foreignId) {
@@ -93,6 +101,7 @@ async function reorderProjects(
       where: and(
         eq(projectTable.workspaceId, workspaceId),
         projectAccessCondition(userId, projectTable.id),
+        eq(projectTable.isTemplate, false),
       ),
       orderBy: [
         asc(projectTable.position),

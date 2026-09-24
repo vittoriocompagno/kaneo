@@ -32,6 +32,7 @@ import archiveProjectCtrl from "./controllers/archive-project";
 import createProjectCtrl from "./controllers/create-project";
 import deleteProjectCtrl from "./controllers/delete-project";
 import getProjectCtrl from "./controllers/get-project";
+import getProjectTemplatesCtrl from "./controllers/get-project-templates";
 import getProjectsCtrl from "./controllers/get-projects";
 import moveProjectCtrl from "./controllers/move-project";
 import reorderProjectsCtrl from "./controllers/reorder-projects";
@@ -43,6 +44,7 @@ import {
   projectBackgroundUploadSchema,
   projectListSchema,
   projectSchema,
+  projectTemplateListSchema,
   toPublicProject,
 } from "./response";
 import {
@@ -96,13 +98,34 @@ const listProjectsRoute = createRoute({
   tags: ["Projects"],
   summary: "List projects",
   description:
-    "List a workspace's projects in sidebar order, each with rollup task statistics. Archived projects are excluded unless includeArchived is set.",
+    "List a workspace's non-template projects in sidebar order, each with rollup task statistics. Archived projects are excluded unless includeArchived is set.",
   middleware: [workspaceAccess.fromQuery()] as const,
   request: { query: listProjectsQuery },
   responses: {
     200: jsonResponse("List of projects", projectListSchema),
     400: errorResponse("Workspace ID could not be determined"),
     403: errorResponse("No access to the workspace"),
+  },
+});
+
+const listProjectTemplatesRoute = createRoute({
+  method: "get",
+  operationId: "listProjectTemplates",
+  path: "/templates",
+  tags: ["Projects"],
+  summary: "List project templates",
+  description: "List the saved project templates in a workspace.",
+  middleware: [
+    workspaceAccess.fromQuery(),
+    requireWorkspacePermission({ project: ["read"] }),
+  ] as const,
+  request: { query: workspaceIdQuery },
+  responses: {
+    200: jsonResponse("Project templates", projectTemplateListSchema),
+    400: errorResponse("Workspace ID could not be determined"),
+    403: errorResponse(
+      "No workspace access or missing project:read permission",
+    ),
   },
 });
 
@@ -113,7 +136,7 @@ const createProjectRoute = createRoute({
   tags: ["Projects"],
   summary: "Create project",
   description:
-    "Create a project in a workspace. The slug becomes the prefix of its task identifiers.",
+    "Create a private project in a workspace. Optionally copy configuration and tasks from a source project in that workspace, or save the copy as a template. The slug becomes the prefix of its task identifiers.",
   middleware: [
     workspaceAccess.fromBody(),
     requireWorkspacePermission({ project: ["create"] }),
@@ -129,8 +152,9 @@ const createProjectRoute = createRoute({
     200: jsonResponse("The created project", projectSchema),
     400: errorResponse("Invalid body, or workspace ID could not be determined"),
     403: errorResponse(
-      "No workspace access, or missing project:create permission",
+      "No workspace access, missing project:create, or missing project:read for a source",
     ),
+    404: errorResponse("Source project not found in this workspace"),
     409: errorResponse("Another project in the workspace uses this key"),
   },
 });
@@ -441,15 +465,33 @@ const project = apiRouter<BaseVariables & { workspaceId: string }>()
     );
     return c.json(projects.map(toPublicProject), 200);
   })
-  .openapi(createProjectRoute, async (c) => {
-    const { name, icon, slug } = c.req.valid("json");
+  .openapi(listProjectTemplatesRoute, async (c) => {
     const workspaceId = c.get("workspaceId");
+    const templates = await getProjectTemplatesCtrl(
+      workspaceId,
+      c.get("userId"),
+    );
+    return c.json(templates.map(toPublicProject), 200);
+  })
+  .openapi(createProjectRoute, async (c) => {
+    const { name, icon, slug, sourceProjectId, includeTasks, asTemplate } =
+      c.req.valid("json");
+    const workspaceId = c.get("workspaceId");
+    if (
+      sourceProjectId &&
+      !(await hasWorkspacePermission(c, { project: ["read"] }))
+    ) {
+      throw new HTTPException(403, {
+        message: "Copying a project requires project:read permission",
+      });
+    }
     const newProject = await createProjectCtrl(
       workspaceId,
       name,
       icon,
       slug,
       c.get("userId"),
+      { sourceProjectId, includeTasks, asTemplate },
     );
     return c.json(toPublicProject(newProject), 200);
   })
