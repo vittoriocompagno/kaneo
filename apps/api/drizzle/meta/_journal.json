@@ -435,6 +435,13 @@
       "when": 1791370487755,
       "tag": "0061_project_templates",
       "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "7",
+      "when": 1791381372244,
+      "tag": "0062_subprojects_dashboard",
+      "breakpoints": true
     }
   ]
 }

@@ -1,6 +1,18 @@
 import { HTTPException } from "hono/http-exception";
 import { nullableResponseTimestamp, responseTimestamp, z } from "../openapi";
 import { boardColumnSchema, boardTaskSchema } from "../task/response";
+import { PROJECT_HEALTH } from "./project-health";
+import { PROJECT_STATUSES } from "./project-status";
+
+export const projectStatusSchema = z.enum(PROJECT_STATUSES).openapi({
+  description:
+    "Manual project state: in_corso (in progress), in_attesa_cliente (waiting on the client), in_pausa (paused), chiuso (closed).",
+});
+
+export const projectHealthSchema = z.enum(PROJECT_HEALTH).openapi({
+  description:
+    "Computed indicator: not_started (no tasks), complete (no open tasks), late (a quarter or more of the open tasks are overdue), at_risk (some overdue, or work due within 7 days with under half done), on_track.",
+});
 
 export const projectSchema = z
   .object({
@@ -22,6 +34,11 @@ export const projectSchema = z
       description:
         "When true the project is a reusable template, omitted from ordinary project lists.",
     }),
+    parentProjectId: z.string().nullable().openapi({
+      description:
+        "The parent project's id when this is a subproject. Subprojects nest one level only and share the parent's workspace. A restricted member may see a parent id they cannot open.",
+    }),
+    status: projectStatusSchema,
     archivedAt: nullableResponseTimestamp.openapi({
       description:
         "Non-null once archived; archived projects are hidden by default.",
@@ -45,6 +62,11 @@ export const projectStatisticsSchema = z
     dueDate: nullableResponseTimestamp.openapi({
       description: "The soonest due date among the project's open tasks.",
     }),
+    overdueTasks: z.number().openapi({
+      description:
+        "Open tasks more than a day past their due date. This project only, subprojects excluded.",
+    }),
+    health: projectHealthSchema,
   })
   .openapi("ProjectStatistics");
 
@@ -101,3 +123,58 @@ export function toPublicProject<
   } = project;
   return publicProject;
 }
+
+export const projectMetricsSchema = z
+  .object({
+    totalTasks: z.number(),
+    doneTasks: z.number(),
+    remainingTasks: z.number(),
+    progress: z.number().openapi({ description: "Percent done, 0 to 100." }),
+    overdueTasks: z.number(),
+    dueSoonTasks: z.number().openapi({
+      description: "Open tasks due within the next 7 days.",
+    }),
+    nextDueDate: nullableResponseTimestamp.openapi({
+      description: "The soonest due date among open tasks.",
+    }),
+    trackedSeconds: z.number().openapi({
+      description:
+        "Sum of the finished time entries on the project's tasks, in seconds. Running timers count once stopped.",
+    }),
+    health: projectHealthSchema,
+  })
+  .openapi("ProjectMetrics");
+
+export const projectDashboardSchema = z
+  .object({
+    project: projectSchema,
+    parent: z
+      .object({ id: z.string(), name: z.string(), icon: z.string().nullable() })
+      .nullable()
+      .openapi({
+        description:
+          "The parent project, when this is a subproject the caller can open.",
+      }),
+    summary: projectMetricsSchema.openapi({
+      description:
+        "This project plus every subproject the caller can open. Equals own for a project without subprojects.",
+    }),
+    own: projectMetricsSchema.openapi({
+      description: "This project alone, subprojects excluded.",
+    }),
+    subprojects: z.array(
+      z.object({
+        id: z.string(),
+        name: z.string(),
+        slug: z.string(),
+        icon: z.string().nullable(),
+        status: projectStatusSchema,
+        metrics: projectMetricsSchema,
+      }),
+    ),
+  })
+  .openapi("ProjectDashboard");
+
+export const subprojectListSchema = z
+  .array(projectListItemSchema)
+  .openapi("SubprojectList");

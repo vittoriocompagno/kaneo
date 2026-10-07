@@ -17,7 +17,13 @@ export const WORKSPACE_ACTIVITY_LIMIT = 20;
 // in workspaces with years of history.
 const WINDOW_DAYS = 30;
 
-async function getWorkspaceActivities(workspaceId: string, userId: string) {
+// `onlyProjectIds` narrows the feed to those projects (still subject to the
+// caller's access), which is how a project dashboard reuses this query.
+async function getWorkspaceActivities(
+  workspaceId: string,
+  userId: string,
+  onlyProjectIds?: string[],
+) {
   const since = new Date(Date.now() - WINDOW_DAYS * 24 * 60 * 60 * 1000);
 
   // Concrete project IDs let PostgreSQL estimate task selectivity before it
@@ -30,6 +36,7 @@ async function getWorkspaceActivities(workspaceId: string, userId: string) {
       and(
         eq(projectTable.workspaceId, workspaceId),
         isNull(projectTable.archivedAt),
+        onlyProjectIds ? inArray(projectTable.id, onlyProjectIds) : undefined,
         projectAccessCondition(userId, projectTable.id),
       ),
     );

@@ -1,18 +1,28 @@
-import { and, count, eq, isNull, min, sql } from "drizzle-orm";
+import { and, count, eq, isNull, min } from "drizzle-orm";
 import db from "../../database";
 import { projectTable, taskTable } from "../../database/schema";
 import { projectAccessCondition } from "../../project-access/project-access-condition";
+import { computeProjectHealth, type ProjectHealth } from "../project-health";
+import {
+  doneTaskCount,
+  dueSoonTaskCount,
+  overdueTaskCount,
+} from "../task-metrics";
 
 type ProjectStatistics = {
   completionPercentage: number;
   totalTasks: number;
   dueDate: Date | null;
+  overdueTasks: number;
+  health: ProjectHealth;
 };
 
 const EMPTY_STATISTICS: ProjectStatistics = {
   completionPercentage: 0,
   totalTasks: 0,
   dueDate: null,
+  overdueTasks: 0,
+  health: "not_started",
 };
 
 async function getProjectStatistics(
@@ -32,9 +42,9 @@ async function getProjectStatistics(
     .select({
       projectId: taskTable.projectId,
       totalTasks: count(),
-      completedTasks: count(
-        sql`case when ${taskTable.status} in ('done', 'archived') then 1 end`,
-      ),
+      completedTasks: doneTaskCount,
+      overdueTasks: overdueTaskCount,
+      dueSoonTasks: dueSoonTaskCount,
       dueDate: min(taskTable.dueDate),
     })
     .from(taskTable)
@@ -58,11 +68,20 @@ async function getProjectStatistics(
     const totalTasks = Number(row.totalTasks);
     const completedTasks = Number(row.completedTasks);
 
+    const overdueTasks = Number(row.overdueTasks);
+
     statisticsByProject.set(row.projectId, {
       totalTasks,
       completionPercentage:
         totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0,
       dueDate: row.dueDate ?? null,
+      overdueTasks,
+      health: computeProjectHealth({
+        totalTasks,
+        doneTasks: completedTasks,
+        overdueTasks,
+        dueSoonTasks: Number(row.dueSoonTasks),
+      }),
     });
   }
 

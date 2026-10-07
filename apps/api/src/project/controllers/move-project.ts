@@ -80,6 +80,22 @@ async function moveProject(
       });
     }
 
+    // A subproject and its parent must share a workspace, and children are not
+    // dragged along (their keys, grants and relations are their own business).
+    // So a parent cannot move while it has subprojects, whereas a subproject
+    // just leaves its parent: detaching loses no data and can be redone.
+    const [child] = await tx
+      .select({ name: projectTable.name })
+      .from(projectTable)
+      .where(eq(projectTable.parentProjectId, id))
+      .limit(1);
+    if (child) {
+      throw new HTTPException(409, {
+        message:
+          "This project has subprojects. Move or detach them before moving it to another workspace.",
+      });
+    }
+
     const linked = await tx.execute(sql`
       SELECT 1 FROM ${taskRelationTable} relation
       JOIN ${taskTable} source ON source.id = relation.source_task_id
@@ -122,7 +138,11 @@ async function moveProject(
 
     const [movedProject] = await tx
       .update(projectTable)
-      .set({ workspaceId: targetWorkspaceId, position: appendedPosition })
+      .set({
+        workspaceId: targetWorkspaceId,
+        position: appendedPosition,
+        parentProjectId: null,
+      })
       .where(
         and(
           eq(projectTable.id, id),

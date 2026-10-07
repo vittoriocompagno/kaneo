@@ -704,6 +704,23 @@
             "type": "boolean",
             "description": "When true the project is a reusable template, omitted from ordinary project lists."
           },
+          "parentProjectId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The parent project's id when this is a subproject. Subprojects nest one level only and share the parent's workspace. A restricted member may see a parent id they cannot open."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "in_corso",
+              "in_attesa_cliente",
+              "in_pausa",
+              "chiuso"
+            ],
+            "description": "Manual project state: in_corso (in progress), in_attesa_cliente (waiting on the client), in_pausa (paused), chiuso (closed)."
+          },
           "archivedAt": {
             "type": [
               "string",
@@ -732,6 +749,8 @@
           "createdAt",
           "isPublic",
           "isTemplate",
+          "parentProjectId",
+          "status",
           "archivedAt",
           "position",
           "lastTaskNumber"
@@ -795,12 +814,29 @@
             ],
             "format": "date-time",
             "description": "The soonest due date among the project's open tasks."
+          },
+          "overdueTasks": {
+            "type": "number",
+            "description": "Open tasks more than a day past their due date. This project only, subprojects excluded."
+          },
+          "health": {
+            "type": "string",
+            "enum": [
+              "not_started",
+              "on_track",
+              "at_risk",
+              "late",
+              "complete"
+            ],
+            "description": "Computed indicator: not_started (no tasks), complete (no open tasks), late (a quarter or more of the open tasks are overdue), at_risk (some overdue, or work due within 7 days with under half done), on_track."
           }
         },
         "required": [
           "completionPercentage",
           "totalTasks",
-          "dueDate"
+          "dueDate",
+          "overdueTasks",
+          "health"
         ]
       },
       "ProjectTemplateList": {
@@ -808,6 +844,170 @@
         "items": {
           "$ref": "#/components/schemas/Project"
         }
+      },
+      "SubprojectList": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/ProjectListItem"
+        }
+      },
+      "ProjectDashboard": {
+        "type": "object",
+        "properties": {
+          "project": {
+            "$ref": "#/components/schemas/Project"
+          },
+          "parent": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "icon": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "icon"
+            ],
+            "description": "The parent project, when this is a subproject the caller can open."
+          },
+          "summary": {
+            "$ref": "#/components/schemas/ProjectMetrics"
+          },
+          "own": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProjectMetrics"
+              },
+              {
+                "description": "This project alone, subprojects excluded."
+              }
+            ]
+          },
+          "subprojects": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "slug": {
+                  "type": "string"
+                },
+                "icon": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "in_corso",
+                    "in_attesa_cliente",
+                    "in_pausa",
+                    "chiuso"
+                  ],
+                  "description": "Manual project state: in_corso (in progress), in_attesa_cliente (waiting on the client), in_pausa (paused), chiuso (closed)."
+                },
+                "metrics": {
+                  "$ref": "#/components/schemas/ProjectMetrics"
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "slug",
+                "icon",
+                "status",
+                "metrics"
+              ]
+            }
+          }
+        },
+        "required": [
+          "project",
+          "parent",
+          "summary",
+          "own",
+          "subprojects"
+        ]
+      },
+      "ProjectMetrics": {
+        "type": "object",
+        "properties": {
+          "totalTasks": {
+            "type": "number"
+          },
+          "doneTasks": {
+            "type": "number"
+          },
+          "remainingTasks": {
+            "type": "number"
+          },
+          "progress": {
+            "type": "number",
+            "description": "Percent done, 0 to 100."
+          },
+          "overdueTasks": {
+            "type": "number"
+          },
+          "dueSoonTasks": {
+            "type": "number",
+            "description": "Open tasks due within the next 7 days."
+          },
+          "nextDueDate": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "The soonest due date among open tasks."
+          },
+          "trackedSeconds": {
+            "type": "number",
+            "description": "Sum of the finished time entries on the project's tasks, in seconds. Running timers count once stopped."
+          },
+          "health": {
+            "type": "string",
+            "enum": [
+              "not_started",
+              "on_track",
+              "at_risk",
+              "late",
+              "complete"
+            ],
+            "description": "Computed indicator: not_started (no tasks), complete (no open tasks), late (a quarter or more of the open tasks are overdue), at_risk (some overdue, or work due within 7 days with under half done), on_track."
+          }
+        },
+        "required": [
+          "totalTasks",
+          "doneTasks",
+          "remainingTasks",
+          "progress",
+          "overdueTasks",
+          "dueSoonTasks",
+          "nextDueDate",
+          "trackedSeconds",
+          "health"
+        ],
+        "description": "This project plus every subproject the caller can open. Equals own for a project without subprojects."
       },
       "ProjectBackgroundUpload": {
         "type": "object",
@@ -7771,7 +7971,7 @@
           "Projects"
         ],
         "summary": "Move a project to another workspace",
-        "description": "Move a project and its tasks. Requires update and delete permission in the source, plus project creation and workspace settings management permission in the destination. Remove cross-project task relationships before moving.",
+        "description": "Move a project and its tasks. A subproject is detached from its parent; a project that still has subprojects cannot be moved. Requires update and delete permission in the source, plus project creation and workspace settings management permission in the destination. Remove cross-project task relationships before moving.",
         "parameters": [
           {
             "schema": {
@@ -7863,7 +8063,7 @@
             }
           },
           "409": {
-            "description": "Project key conflict or cross-project task relationships",
+            "description": "Project key conflict, cross-project task relationships, or the project has subprojects",
             "content": {
               "text/plain": {
                 "schema": {
@@ -7948,7 +8148,7 @@
           "Projects"
         ],
         "summary": "Create project",
-        "description": "Create a private project in a workspace. Optionally copy configuration and tasks from a source project in that workspace, or save the copy as a template. The slug becomes the prefix of its task identifiers.",
+        "description": "Create a private project in a workspace. Optionally copy configuration and tasks from a source project in that workspace, save the copy as a template, or nest it under a top-level project (parentProjectId). Subprojects are never copied along with a source. The slug becomes the prefix of its task identifiers.",
         "requestBody": {
           "required": true,
           "content": {
@@ -7979,6 +8179,11 @@
                   "asTemplate": {
                     "type": "boolean",
                     "description": "Save the copy as a reusable template; requires sourceProjectId."
+                  },
+                  "parentProjectId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Create the project as a subproject of this top-level project in the same workspace. Not allowed together with asTemplate."
                   }
                 },
                 "required": [
@@ -8026,7 +8231,7 @@
             }
           },
           "404": {
-            "description": "Source project not found in this workspace",
+            "description": "Source or parent project not found in this workspace",
             "content": {
               "text/plain": {
                 "schema": {
@@ -8297,6 +8502,313 @@
           },
           "403": {
             "description": "No workspace access, or missing project:delete permission",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/project/{id}/parent": {
+      "put": {
+        "operationId": "setProjectParent",
+        "tags": [
+          "Projects"
+        ],
+        "summary": "Set or clear a project's parent",
+        "description": "Nest a project under a top-level project of the same workspace, or pass null to make it top-level. Subprojects nest one level only: the parent cannot itself be a subproject, and a project with subprojects cannot become one. Templates cannot take part.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "parentProjectId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1,
+                    "description": "The new parent, or null to make the project top-level again."
+                  }
+                },
+                "required": [
+                  "parentProjectId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated project",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Project"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Self-parenting, nesting under a subproject or template, or a template used as a subproject",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "No workspace access, or missing project:update permission",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project or parent not found in this workspace",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The project has subprojects of its own",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/project/{id}/status": {
+      "put": {
+        "operationId": "setProjectStatus",
+        "tags": [
+          "Projects"
+        ],
+        "summary": "Set the project status",
+        "description": "Set the manual project status: in_corso, in_attesa_cliente, in_pausa or chiuso. It is independent of archiving and of the computed health indicator.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "in_corso",
+                      "in_attesa_cliente",
+                      "in_pausa",
+                      "chiuso"
+                    ]
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated project",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Project"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid status, or unknown project",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "No workspace access, or missing project:update permission",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project not found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/project/{id}/subprojects": {
+      "get": {
+        "operationId": "listSubprojects",
+        "tags": [
+          "Projects"
+        ],
+        "summary": "List subprojects",
+        "description": "List the non-archived subprojects of a project that the caller can open, in sidebar order, each with rollup task statistics.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The subprojects",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubprojectList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unknown project, or its workspace could not be determined",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "No access to the project's workspace",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/project/{id}/dashboard": {
+      "get": {
+        "operationId": "getProjectDashboard",
+        "tags": [
+          "Projects"
+        ],
+        "summary": "Get the project dashboard",
+        "description": "Task counts, progress, overdue work, tracked hours and a computed health indicator for a project. A project with subprojects also aggregates them and breaks the numbers down per subproject. Only projects the caller can open are counted. Anyone who can open the project sees its hours.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The project dashboard",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectDashboard"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unknown project, or its workspace could not be determined",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "No workspace access, or missing project:read permission",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project not found",
             "content": {
               "text/plain": {
                 "schema": {
@@ -11926,6 +12438,65 @@
           },
           "400": {
             "description": "Workspace ID could not be determined",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "No workspace access, or missing project:read or task:read permission",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/activity/project/{projectId}": {
+      "get": {
+        "operationId": "getProjectActivities",
+        "tags": [
+          "Activity"
+        ],
+        "summary": "Get recent project activity",
+        "description": "Get the 20 most recent task events in a project and its subprojects from the last 30 days, newest first. Subprojects the caller cannot open are left out.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "projectId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Recent activity in the project",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkspaceActivity"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unknown project",
             "content": {
               "text/plain": {
                 "schema": {

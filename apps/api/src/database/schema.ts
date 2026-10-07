@@ -1,7 +1,9 @@
 import { createId } from "@paralleldrive/cuid2";
 import { relations, sql } from "drizzle-orm";
 import {
+  type AnyPgColumn,
   boolean,
+  check,
   customType,
   foreignKey,
   index,
@@ -14,6 +16,10 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 import type { GitHubImportState } from "../github-integration/import-state";
+import {
+  DEFAULT_PROJECT_STATUS,
+  PROJECT_STATUSES,
+} from "../project/project-status";
 
 const bytea = customType<{ data: Buffer; driverData: Buffer }>({
   dataType() {
@@ -333,6 +339,19 @@ export const projectTable = pgTable(
     createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
     isPublic: boolean("is_public").default(false),
     isTemplate: boolean("is_template").default(false).notNull(),
+    // One nesting level only. SET NULL (not CASCADE or RESTRICT): deleting a
+    // parent must neither wipe its subprojects' tasks and hours nor be blocked
+    // by them, so they become top-level projects. Same workspace and "a
+    // subproject has no children" are enforced in the controllers, under the
+    // workspace ordering lock, since a foreign key cannot express them.
+    parentProjectId: text("parent_project_id").references(
+      (): AnyPgColumn => projectTable.id,
+      { onDelete: "set null", onUpdate: "cascade" },
+    ),
+    // Manual, human-set state. The computed health indicator is separate.
+    status: text("status", { enum: PROJECT_STATUSES })
+      .notNull()
+      .default(DEFAULT_PROJECT_STATUS),
     archivedAt: timestamp("archived_at", { mode: "date" }),
     lastTaskNumber: integer("last_task_number").notNull().default(0),
     position: integer("position").notNull().default(0),
@@ -341,6 +360,17 @@ export const projectTable = pgTable(
     backgroundVersion: text("background_version"),
   },
   (table) => [
+    index("project_parent_project_id_idx")
+      .on(table.parentProjectId)
+      .where(sql`${table.parentProjectId} is not null`),
+    check(
+      "project_parent_not_self_check",
+      sql`${table.parentProjectId} is null or ${table.parentProjectId} <> ${table.id}`,
+    ),
+    check(
+      "project_status_check",
+      sql`${table.status} in ('in_corso', 'in_attesa_cliente', 'in_pausa', 'chiuso')`,
+    ),
     index("project_background_object_key_idx")
       .on(table.backgroundObjectKey)
       .where(sql`${table.backgroundObjectKey} is not null`),

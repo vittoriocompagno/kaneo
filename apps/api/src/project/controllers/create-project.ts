@@ -13,6 +13,7 @@ import {
 } from "../../database/schema";
 import { grantProjectToRestrictedMember } from "../../project-access/grant-project-to-restricted-member";
 import { projectAccessCondition } from "../../project-access/project-access-condition";
+import { assertCanNestUnder } from "../hierarchy";
 import { findProjectKeyConflict, projectKeyTakenMessage } from "../project-key";
 
 export const DEFAULT_PROJECT_COLUMNS = [
@@ -28,6 +29,9 @@ type CreateProjectOptions = {
   sourceProjectId?: string;
   includeTasks?: boolean;
   asTemplate?: boolean;
+  // Nest the new project under this one. Never inherited from a copy source:
+  // duplicating a subproject or a parent does not duplicate the hierarchy.
+  parentProjectId?: string;
 };
 
 async function createProject(
@@ -41,6 +45,12 @@ async function createProject(
   if (options.asTemplate && !options.sourceProjectId) {
     throw new HTTPException(400, {
       message: "A source project is required to save a template",
+    });
+  }
+
+  if (options.asTemplate && options.parentProjectId) {
+    throw new HTTPException(400, {
+      message: "A template cannot be a subproject",
     });
   }
 
@@ -75,6 +85,14 @@ async function createProject(
       throw new HTTPException(404, { message: "Source project not found" });
     }
 
+    if (options.parentProjectId) {
+      await assertCanNestUnder(tx, {
+        workspaceId,
+        userId,
+        parentProjectId: options.parentProjectId,
+      });
+    }
+
     // New projects go to the bottom of the workspace's ordering.
     const [{ maxPosition } = { maxPosition: null }] = await tx
       .select({ maxPosition: max(projectTable.position) })
@@ -90,6 +108,7 @@ async function createProject(
         slug,
         description: source?.description,
         isTemplate: options.asTemplate ?? false,
+        parentProjectId: options.parentProjectId ?? null,
         position: maxPosition === null ? 0 : maxPosition + 1,
       })
       .returning();

@@ -2,6 +2,7 @@ import { HTTPException } from "hono/http-exception";
 import { subscribeToEvent } from "../events";
 import {
   apiRouter,
+  type BaseVariables,
   createRoute,
   errorResponse,
   jsonResponse,
@@ -13,6 +14,7 @@ import createActivity from "./controllers/create-activity";
 import createComment from "./controllers/create-comment";
 import deleteComment from "./controllers/delete-comment";
 import getActivities from "./controllers/get-activities";
+import getProjectActivities from "./controllers/get-project-activities";
 import getWorkspaceActivities from "./controllers/get-workspace-activities";
 import updateComment from "./controllers/update-comment";
 import {
@@ -25,6 +27,7 @@ import {
   createActivityBody,
   createCommentBody,
   deleteCommentBody,
+  projectIdParam,
   taskIdParam,
   updateCommentBody,
   workspaceIdParam,
@@ -49,6 +52,31 @@ const getWorkspaceActivitiesRoute = createRoute({
       workspaceActivityListSchema,
     ),
     400: errorResponse("Workspace ID could not be determined"),
+    403: errorResponse(
+      "No workspace access, or missing project:read or task:read permission",
+    ),
+  },
+});
+
+const getProjectActivitiesRoute = createRoute({
+  method: "get",
+  operationId: "getProjectActivities",
+  path: "/project/{projectId}",
+  tags: ["Activity"],
+  summary: "Get recent project activity",
+  description:
+    "Get the 20 most recent task events in a project and its subprojects from the last 30 days, newest first. Subprojects the caller cannot open are left out.",
+  middleware: [
+    workspaceAccess.fromProject("projectId"),
+    requireWorkspacePermission({ project: ["read"], task: ["read"] }),
+  ] as const,
+  request: { params: projectIdParam },
+  responses: {
+    200: jsonResponse(
+      "Recent activity in the project",
+      workspaceActivityListSchema,
+    ),
+    400: errorResponse("Unknown project"),
     403: errorResponse(
       "No workspace access, or missing project:read or task:read permission",
     ),
@@ -179,11 +207,21 @@ const deleteCommentRoute = createRoute({
   },
 });
 
-const activity = apiRouter()
+const activity = apiRouter<BaseVariables & { workspaceId: string }>()
   .openapi(getWorkspaceActivitiesRoute, async (c) =>
     c.json(
       await getWorkspaceActivities(
         c.req.valid("param").workspaceId,
+        c.get("userId"),
+      ),
+      200,
+    ),
+  )
+  .openapi(getProjectActivitiesRoute, async (c) =>
+    c.json(
+      await getProjectActivities(
+        c.req.valid("param").projectId,
+        c.get("workspaceId"),
         c.get("userId"),
       ),
       200,

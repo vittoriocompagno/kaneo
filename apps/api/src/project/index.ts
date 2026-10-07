@@ -32,19 +32,25 @@ import archiveProjectCtrl from "./controllers/archive-project";
 import createProjectCtrl from "./controllers/create-project";
 import deleteProjectCtrl from "./controllers/delete-project";
 import getProjectCtrl from "./controllers/get-project";
+import getProjectDashboardCtrl from "./controllers/get-project-dashboard";
 import getProjectTemplatesCtrl from "./controllers/get-project-templates";
 import getProjectsCtrl from "./controllers/get-projects";
+import getSubprojectsCtrl from "./controllers/get-subprojects";
 import moveProjectCtrl from "./controllers/move-project";
 import reorderProjectsCtrl from "./controllers/reorder-projects";
+import setProjectParentCtrl from "./controllers/set-project-parent";
+import setProjectStatusCtrl from "./controllers/set-project-status";
 import unarchiveProjectCtrl from "./controllers/unarchive-project";
 import updateProjectCtrl from "./controllers/update-project";
 import {
   movedProjectSchema,
   projectBackgroundFinalizeSchema,
   projectBackgroundUploadSchema,
+  projectDashboardSchema,
   projectListSchema,
   projectSchema,
   projectTemplateListSchema,
+  subprojectListSchema,
   toPublicProject,
 } from "./response";
 import {
@@ -54,6 +60,8 @@ import {
   moveProjectBody,
   projectParam,
   reorderProjectsBody,
+  setProjectParentBody,
+  setProjectStatusBody,
   updateProjectBody,
   uploadProjectBackgroundBody,
   workspaceIdQuery,
@@ -66,7 +74,7 @@ const moveProjectRoute = createRoute({
   tags: ["Projects"],
   summary: "Move a project to another workspace",
   description:
-    "Move a project and its tasks. Requires update and delete permission in the source, plus project creation and workspace settings management permission in the destination. Remove cross-project task relationships before moving.",
+    "Move a project and its tasks. A subproject is detached from its parent; a project that still has subprojects cannot be moved. Requires update and delete permission in the source, plus project creation and workspace settings management permission in the destination. Remove cross-project task relationships before moving.",
   middleware: [
     workspaceAccess.fromProject(),
     requireWorkspacePermission({ project: ["update", "delete"] }),
@@ -86,7 +94,7 @@ const moveProjectRoute = createRoute({
     403: errorResponse("Missing workspace access or permission"),
     404: errorResponse("Project not found in the source workspace"),
     409: errorResponse(
-      "Project key conflict or cross-project task relationships",
+      "Project key conflict, cross-project task relationships, or the project has subprojects",
     ),
   },
 });
@@ -136,7 +144,7 @@ const createProjectRoute = createRoute({
   tags: ["Projects"],
   summary: "Create project",
   description:
-    "Create a private project in a workspace. Optionally copy configuration and tasks from a source project in that workspace, or save the copy as a template. The slug becomes the prefix of its task identifiers.",
+    "Create a private project in a workspace. Optionally copy configuration and tasks from a source project in that workspace, save the copy as a template, or nest it under a top-level project (parentProjectId). Subprojects are never copied along with a source. The slug becomes the prefix of its task identifiers.",
   middleware: [
     workspaceAccess.fromBody(),
     requireWorkspacePermission({ project: ["create"] }),
@@ -154,7 +162,7 @@ const createProjectRoute = createRoute({
     403: errorResponse(
       "No workspace access, missing project:create, or missing project:read for a source",
     ),
-    404: errorResponse("Source project not found in this workspace"),
+    404: errorResponse("Source or parent project not found in this workspace"),
     409: errorResponse("Another project in the workspace uses this key"),
   },
 });
@@ -305,6 +313,111 @@ const unarchiveProjectRoute = createRoute({
       "No workspace access, or missing project:update permission",
     ),
     409: errorResponse("Another project in the workspace uses this key"),
+  },
+});
+
+const setProjectParentRoute = createRoute({
+  method: "put",
+  operationId: "setProjectParent",
+  path: "/{id}/parent",
+  tags: ["Projects"],
+  summary: "Set or clear a project's parent",
+  description:
+    "Nest a project under a top-level project of the same workspace, or pass null to make it top-level. Subprojects nest one level only: the parent cannot itself be a subproject, and a project with subprojects cannot become one. Templates cannot take part.",
+  middleware: [
+    workspaceAccess.fromProject(),
+    requireWorkspacePermission({ project: ["update"] }),
+  ] as const,
+  request: {
+    params: projectParam,
+    body: {
+      required: true,
+      content: { "application/json": { schema: setProjectParentBody } },
+    },
+  },
+  responses: {
+    200: jsonResponse("The updated project", projectSchema),
+    400: errorResponse(
+      "Self-parenting, nesting under a subproject or template, or a template used as a subproject",
+    ),
+    403: errorResponse(
+      "No workspace access, or missing project:update permission",
+    ),
+    404: errorResponse("Project or parent not found in this workspace"),
+    409: errorResponse("The project has subprojects of its own"),
+  },
+});
+
+const setProjectStatusRoute = createRoute({
+  method: "put",
+  operationId: "setProjectStatus",
+  path: "/{id}/status",
+  tags: ["Projects"],
+  summary: "Set the project status",
+  description:
+    "Set the manual project status: in_corso, in_attesa_cliente, in_pausa or chiuso. It is independent of archiving and of the computed health indicator.",
+  middleware: [
+    workspaceAccess.fromProject(),
+    requireWorkspacePermission({ project: ["update"] }),
+  ] as const,
+  request: {
+    params: projectParam,
+    body: {
+      required: true,
+      content: { "application/json": { schema: setProjectStatusBody } },
+    },
+  },
+  responses: {
+    200: jsonResponse("The updated project", projectSchema),
+    400: errorResponse("Invalid status, or unknown project"),
+    403: errorResponse(
+      "No workspace access, or missing project:update permission",
+    ),
+    404: errorResponse("Project not found"),
+  },
+});
+
+const listSubprojectsRoute = createRoute({
+  method: "get",
+  operationId: "listSubprojects",
+  path: "/{id}/subprojects",
+  tags: ["Projects"],
+  summary: "List subprojects",
+  description:
+    "List the non-archived subprojects of a project that the caller can open, in sidebar order, each with rollup task statistics.",
+  middleware: [workspaceAccess.fromProject()] as const,
+  request: { params: projectParam },
+  responses: {
+    200: jsonResponse("The subprojects", subprojectListSchema),
+    400: errorResponse(
+      "Unknown project, or its workspace could not be determined",
+    ),
+    403: errorResponse("No access to the project's workspace"),
+  },
+});
+
+const getProjectDashboardRoute = createRoute({
+  method: "get",
+  operationId: "getProjectDashboard",
+  path: "/{id}/dashboard",
+  tags: ["Projects"],
+  summary: "Get the project dashboard",
+  description:
+    "Task counts, progress, overdue work, tracked hours and a computed health indicator for a project. A project with subprojects also aggregates them and breaks the numbers down per subproject. Only projects the caller can open are counted. Anyone who can open the project sees its hours.",
+  middleware: [
+    workspaceAccess.fromProject(),
+    requireWorkspacePermission({ project: ["read"] }),
+  ] as const,
+  request: { params: projectParam },
+  responses: {
+    200: jsonResponse("The project dashboard", projectDashboardSchema),
+    400: errorResponse(
+      "Unknown project, or its workspace could not be determined",
+    ),
+    403: errorResponse(
+      "No workspace access, or missing project:read permission",
+    ),
+    404: errorResponse("Project not found"),
   },
 });
 
@@ -474,8 +587,15 @@ const project = apiRouter<BaseVariables & { workspaceId: string }>()
     return c.json(templates.map(toPublicProject), 200);
   })
   .openapi(createProjectRoute, async (c) => {
-    const { name, icon, slug, sourceProjectId, includeTasks, asTemplate } =
-      c.req.valid("json");
+    const {
+      name,
+      icon,
+      slug,
+      sourceProjectId,
+      includeTasks,
+      asTemplate,
+      parentProjectId,
+    } = c.req.valid("json");
     const workspaceId = c.get("workspaceId");
     if (
       sourceProjectId &&
@@ -491,7 +611,7 @@ const project = apiRouter<BaseVariables & { workspaceId: string }>()
       icon,
       slug,
       c.get("userId"),
-      { sourceProjectId, includeTasks, asTemplate },
+      { sourceProjectId, includeTasks, asTemplate, parentProjectId },
     );
     return c.json(toPublicProject(newProject), 200);
   })
@@ -500,6 +620,50 @@ const project = apiRouter<BaseVariables & { workspaceId: string }>()
     const workspaceId = c.get("workspaceId");
     const projectData = await getProjectCtrl(id, workspaceId);
     return c.json(toPublicProject(projectData), 200);
+  })
+  .openapi(setProjectParentRoute, async (c) => {
+    const { id } = c.req.valid("param");
+    const { parentProjectId } = c.req.valid("json");
+    const updated = await setProjectParentCtrl(
+      id,
+      parentProjectId,
+      c.get("workspaceId"),
+      c.get("userId"),
+    );
+    await publishEvent("project.updated", { projectId: id });
+    return c.json(toPublicProject(updated), 200);
+  })
+  .openapi(setProjectStatusRoute, async (c) => {
+    const { id } = c.req.valid("param");
+    const { status } = c.req.valid("json");
+    const updated = await setProjectStatusCtrl(
+      id,
+      status,
+      c.get("workspaceId"),
+    );
+    await publishEvent("project.updated", { projectId: id });
+    return c.json(toPublicProject(updated), 200);
+  })
+  .openapi(listSubprojectsRoute, async (c) => {
+    const { id } = c.req.valid("param");
+    const subprojects = await getSubprojectsCtrl(
+      id,
+      c.get("workspaceId"),
+      c.get("userId"),
+    );
+    return c.json(subprojects.map(toPublicProject), 200);
+  })
+  .openapi(getProjectDashboardRoute, async (c) => {
+    const { id } = c.req.valid("param");
+    const dashboard = await getProjectDashboardCtrl(
+      id,
+      c.get("workspaceId"),
+      c.get("userId"),
+    );
+    return c.json(
+      { ...dashboard, project: toPublicProject(dashboard.project) },
+      200,
+    );
   })
   .openapi(getProjectBackgroundRoute, async (c) => {
     const { id } = c.req.valid("param");

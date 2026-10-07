@@ -6,6 +6,8 @@ export const activitiesQuery = z.object({
   }),
 });
 
+export const projectIdParam = z.object({ projectId: z.string().min(1) });
+
 export const taskIdParam = z.object({ taskId: z.string() });
 
 export const workspaceIdParam = z.object({ workspaceId: z.string().min(1) });
