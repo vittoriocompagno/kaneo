@@ -91,7 +91,10 @@ export function ProjectDashboard({
             dashboard={dashboard}
             workspaceId={workspaceId}
           />
-          <ActivityFeed workspaceId={workspaceId} projectId={project.id} />
+          {/* Stays in the right column when there is no breakdown beside it. */}
+          <div className="lg:col-start-2">
+            <ActivityFeed workspaceId={workspaceId} projectId={project.id} />
+          </div>
         </div>
       </div>
     </div>
