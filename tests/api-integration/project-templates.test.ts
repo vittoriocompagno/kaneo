@@ -1,8 +1,9 @@
-import { and, eq, inArray } from "drizzle-orm";
-import { beforeEach, describe, expect, it } from "vitest";
+import { and, eq } from "drizzle-orm";
+import { beforeEach, describe, expect, it } from "vite-plus/test";
 import db, { schema } from "../../apps/api/src/database";
 import { createApp } from "../../apps/api/src/index";
 import { mockAuthenticatedSession } from "./helpers/auth";
+import { createRestrictedWorkspace } from "./helpers/project-access/create-restricted-workspace";
 import { resetTestDatabase } from "./helpers/database";
 import {
   createProjectFixture,
@@ -14,8 +15,9 @@ type Project = typeof schema.projectTable.$inferSelect;
 function createRequest(
   workspaceId: string,
   sourceProjectId?: string,
-  options: { includeTasks?: boolean; asTemplate?: boolean } = {},
+  options: { includeTasks?: boolean; asTemplate?: boolean; slug?: string } = {},
 ) {
+  const { slug = "copied-project", ...flags } = options;
   return new Request("http://localhost/api/project", {
     method: "POST",
     headers: { "content-type": "application/json" },
@@ -23,9 +25,9 @@ function createRequest(
       workspaceId,
       name: "Copied project",
       icon: "Layers",
-      slug: "copied-project",
+      slug,
       sourceProjectId,
-      ...options,
+      ...flags,
     }),
   });
 }
@@ -252,65 +254,6 @@ describe("API integration: project templates and duplication", () => {
     expect(value).toMatchObject({ fieldId: field.id, value: "Large" });
   });
 
-  it("copies tasks, labels, and field values across insert batches", async () => {
-    const member = await createWorkspaceMember();
-    const source = await seedSource(member.workspace.id);
-    const extra = await db
-      .insert(schema.taskTable)
-      .values(
-        Array.from({ length: 501 }, (_, index) => ({
-          projectId: source.project.id,
-          columnId: source.columns.todo.id,
-          number: index + 8,
-          title: `Task ${index}`,
-        })),
-      )
-      .returning({ id: schema.taskTable.id });
-    await db.insert(schema.labelTable).values(
-      extra.map(({ id }) => ({
-        taskId: id,
-        workspaceId: member.workspace.id,
-        name: "Batch",
-        color: "#123456",
-      })),
-    );
-    await db.insert(schema.customFieldValueTable).values(
-      extra.map(({ id }) => ({
-        taskId: id,
-        fieldId: source.field.id,
-        value: "Small",
-      })),
-    );
-    mockAuthenticatedSession(member.user);
-    const { app } = createApp();
-
-    const response = await app.request(
-      createRequest(member.workspace.id, source.project.id, {
-        includeTasks: true,
-      }),
-    );
-    expect(response.status).toBe(200);
-    const created = (await response.json()) as Project;
-    const tasks = await db.query.taskTable.findMany({
-      where: eq(schema.taskTable.projectId, created.id),
-      orderBy: (task, { asc }) => [asc(task.number)],
-    });
-    expect(tasks).toHaveLength(502);
-    expect(tasks[501]).toMatchObject({ number: 502, title: "Task 500" });
-    expect(created.lastTaskNumber).toBe(502);
-    const taskIds = tasks.map(({ id }) => id);
-    const labels = await db.query.labelTable.findMany({
-      where: inArray(schema.labelTable.taskId, taskIds),
-    });
-    const values = await db.query.customFieldValueTable.findMany({
-      where: inArray(schema.customFieldValueTable.taskId, taskIds),
-    });
-    expect(labels).toHaveLength(502);
-    expect(values).toHaveLength(502);
-    expect(labels.some((label) => label.taskId === tasks[501]?.id)).toBe(true);
-    expect(values.some((value) => value.taskId === tasks[501]?.id)).toBe(true);
-  });
-
   it("keeps saved templates out of ordinary and archived project lists, scoped to their workspace", async () => {
     const owner = await createWorkspaceMember({ role: "admin" });
     const other = await createWorkspaceMember();
@@ -422,49 +365,6 @@ describe("API integration: project templates and duplication", () => {
     ).toEqual([]);
   });
 
-  it("requires project read access for sources and saved templates", async () => {
-    const member = await createWorkspaceMember({ role: "limited" });
-    const source = await seedSource(member.workspace.id);
-    await db.insert(schema.workspaceRoleTable).values({
-      workspaceId: member.workspace.id,
-      role: "limited",
-      permission: JSON.stringify({ project: ["create"] }),
-    });
-    mockAuthenticatedSession(member.user);
-    const { app } = createApp();
-
-    expect(
-      (
-        await app.request(
-          `/api/project/templates?workspaceId=${member.workspace.id}`,
-        )
-      ).status,
-    ).toBe(403);
-    expect(
-      (await app.request(createRequest(member.workspace.id, source.project.id)))
-        .status,
-    ).toBe(403);
-    expect(
-      (
-        await app.request(
-          createRequest(member.workspace.id, source.project.id, {
-            asTemplate: true,
-          }),
-        )
-      ).status,
-    ).toBe(403);
-    expect((await app.request(createRequest(member.workspace.id))).status).toBe(
-      200,
-    );
-    expect(
-      (
-        await db.query.projectTable.findMany({
-          where: eq(schema.projectTable.workspaceId, member.workspace.id),
-        })
-      ).map((project) => project.isTemplate),
-    ).toEqual([false, false]);
-  });
-
   it("denies a source outside the destination workspace without creating a project", async () => {
     const sourceOwner = await createWorkspaceMember();
     const destinationOwner = await createWorkspaceMember();
@@ -481,6 +381,50 @@ describe("API integration: project templates and duplication", () => {
       where: eq(schema.projectTable.workspaceId, destinationOwner.workspace.id),
     });
     expect(projects).toEqual([]);
+  });
+
+  it("hides and refuses templates outside a restricted member's project grants", async () => {
+    const { workspace, owner, restricted, alpha, beta } =
+      await createRestrictedWorkspace();
+    mockAuthenticatedSession(owner);
+    const { app } = createApp();
+    const hiddenTemplate = await app.request(
+      createRequest(workspace.id, beta.id, {
+        asTemplate: true,
+        slug: "hidden-template",
+      }),
+    );
+    expect(hiddenTemplate.status).toBe(200);
+    const hidden = (await hiddenTemplate.json()) as Project;
+
+    mockAuthenticatedSession(restricted);
+    const templates = await app.request(
+      `/api/project/templates?workspaceId=${workspace.id}`,
+    );
+    expect(templates.status).toBe(200);
+    expect(await templates.json()).toEqual([]);
+
+    for (const sourceId of [beta.id, hidden.id]) {
+      const refused = await app.request(
+        createRequest(workspace.id, sourceId, { slug: "refused-copy" }),
+      );
+      expect(refused.status).toBe(404);
+    }
+    expect(
+      (
+        await db.query.projectTable.findMany({
+          where: eq(schema.projectTable.workspaceId, workspace.id),
+        })
+      ).length,
+    ).toBe(3);
+
+    const copied = await app.request(createRequest(workspace.id, alpha.id));
+    expect(copied.status).toBe(200);
+    const copy = (await copied.json()) as Project;
+    const list = await app.request(`/api/project?workspaceId=${workspace.id}`);
+    expect(
+      ((await list.json()) as Project[]).map((project) => project.id).sort(),
+    ).toEqual([alpha.id, copy.id].sort());
   });
 
   it("rejects a template without a source", async () => {

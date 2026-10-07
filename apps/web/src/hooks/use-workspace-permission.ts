@@ -16,6 +16,7 @@ const CAPABILITIES = {
   manageProjects: { project: ["create", "update", "delete"] },
   createProjects: { project: ["create"] },
   updateProjects: { project: ["update"] },
+  shareProjects: { project: ["share"] },
   deleteProjects: { project: ["delete"] },
   updateTasks: { task: ["update"] },
   createTasks: { task: ["create"] },
@@ -25,9 +26,11 @@ const CAPABILITIES = {
   updateLabels: { label: ["update"] },
   deleteLabels: { label: ["delete"] },
   manageWorkspace: { workspace: ["update", "manage_settings"] },
+  manageSettings: { workspace: ["manage_settings"] },
   deleteWorkspace: { workspace: ["delete"] },
   inviteUsers: { invitation: ["create"] },
   manageTeam: { member: ["update", "delete"] },
+  updateMembers: { member: ["update"] },
   removeMembers: { member: ["delete"] },
 } as const satisfies Record<string, Record<string, string[]>>;
 
@@ -94,6 +97,7 @@ export function useWorkspacePermission() {
       canManageProjects: () => can.manageProjects,
       canCreateProjects: () => can.createProjects,
       canUpdateProjects: () => can.updateProjects,
+      canShareProjects: () => can.shareProjects,
       canDeleteProjects: () => can.deleteProjects,
       canUpdateTasks: () => can.updateTasks,
       canCreateTasks: () => can.createTasks,
@@ -103,9 +107,11 @@ export function useWorkspacePermission() {
       canUpdateLabels: () => can.updateLabels,
       canDeleteLabels: () => can.deleteLabels,
       canManageWorkspace: () => can.manageWorkspace,
+      canManageSettings: () => can.manageSettings,
       canDeleteWorkspace: () => can.deleteWorkspace,
       canInviteUsers: () => can.inviteUsers,
       canManageTeam: () => can.manageTeam,
+      canUpdateMembers: () => can.updateMembers,
       canRemoveMembers: () => can.removeMembers,
       // Escape hatch for ad-hoc permission checks (uncached). Prefer adding
       // a capability above.

@@ -27,6 +27,7 @@ import useGetConfig from "@/hooks/queries/config/use-get-config";
 import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
 import { useRegisterShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { authClient } from "@/lib/auth-client";
+import { hasInstanceAdminRole } from "@/lib/instance-admin";
 import { useUserPreferencesStore } from "@/store/user-preferences";
 import CreateProjectModal from "../shared/modals/create-project-modal";
 
@@ -51,7 +52,7 @@ function CommandPalette() {
   const { data: workspace } = useActiveWorkspace();
   const { data: session } = authClient.useSession();
   const { data: config } = useGetConfig();
-  const isAdmin = session?.user?.role === "admin";
+  const isAdmin = hasInstanceAdminRole(session?.user?.role);
   const canCreateWorkspace =
     isAdmin || (config !== undefined && !config.disableWorkspaceCreation);
   const [open, setOpen] = useState(false);
@@ -81,7 +82,7 @@ function CommandPalette() {
         [shortcuts.project.list]: () => {
           if (!workspace?.id) return;
           navigate({
-            to: "/dashboard/workspace/$workspaceId",
+            to: "/dashboard/workspace/$workspaceId/projects",
             params: { workspaceId: workspace.id },
           });
         },
@@ -117,7 +118,7 @@ function CommandPalette() {
             onRun: () => {
               if (!workspace?.id) return;
               navigate({
-                to: "/dashboard/workspace/$workspaceId",
+                to: "/dashboard/workspace/$workspaceId/projects",
                 params: { workspaceId: workspace.id },
               });
             },

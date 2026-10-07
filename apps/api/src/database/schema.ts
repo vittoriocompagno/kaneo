@@ -1,7 +1,9 @@
 import { createId } from "@paralleldrive/cuid2";
 import { relations, sql } from "drizzle-orm";
 import {
+  type AnyPgColumn,
   boolean,
+  check,
   customType,
   foreignKey,
   index,
@@ -14,6 +16,10 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 import type { GitHubImportState } from "../github-integration/import-state";
+import {
+  DEFAULT_PROJECT_STATUS,
+  PROJECT_STATUSES,
+} from "../project/project-status";
 
 const bytea = customType<{ data: Buffer; driverData: Buffer }>({
   dataType() {
@@ -275,6 +281,11 @@ export const invitationTable = pgTable(
     inviterId: text("inviter_id")
       .notNull()
       .references(() => userTable.id, { onDelete: "cascade" }),
+    projectAccess: text("project_access").default("all").notNull(),
+    projectIds: text("project_ids")
+      .array()
+      .default(sql`'{}'::text[]`)
+      .notNull(),
   },
   (table) => [
     index("invitation_workspaceId_idx").on(table.workspaceId),
@@ -328,16 +339,103 @@ export const projectTable = pgTable(
     createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
     isPublic: boolean("is_public").default(false),
     isTemplate: boolean("is_template").default(false).notNull(),
+    // One nesting level only. SET NULL (not CASCADE or RESTRICT): deleting a
+    // parent must neither wipe its subprojects' tasks and hours nor be blocked
+    // by them, so they become top-level projects. Same workspace and "a
+    // subproject has no children" are enforced in the controllers, under the
+    // workspace ordering lock, since a foreign key cannot express them.
+    parentProjectId: text("parent_project_id").references(
+      (): AnyPgColumn => projectTable.id,
+      { onDelete: "set null", onUpdate: "cascade" },
+    ),
+    // Manual, human-set state. The computed health indicator is separate.
+    status: text("status", { enum: PROJECT_STATUSES })
+      .notNull()
+      .default(DEFAULT_PROJECT_STATUS),
     archivedAt: timestamp("archived_at", { mode: "date" }),
     lastTaskNumber: integer("last_task_number").notNull().default(0),
     position: integer("position").notNull().default(0),
+    backgroundObjectKey: text("background_object_key"),
+    backgroundMimeType: text("background_mime_type"),
+    backgroundVersion: text("background_version"),
   },
   (table) => [
+    index("project_parent_project_id_idx")
+      .on(table.parentProjectId)
+      .where(sql`${table.parentProjectId} is not null`),
+    check(
+      "project_parent_not_self_check",
+      sql`${table.parentProjectId} is null or ${table.parentProjectId} <> ${table.id}`,
+    ),
+    check(
+      "project_status_check",
+      sql`${table.status} in ('in_corso', 'in_attesa_cliente', 'in_pausa', 'chiuso')`,
+    ),
+    index("project_background_object_key_idx")
+      .on(table.backgroundObjectKey)
+      .where(sql`${table.backgroundObjectKey} is not null`),
     unique("project_workspace_id_id_unique").on(table.workspaceId, table.id),
     index("project_workspaceId_position_idx").on(
       table.workspaceId,
       table.position,
     ),
+  ],
+);
+
+export const workspaceMemberAccessTable = pgTable(
+  "workspace_member_access",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, { onDelete: "cascade" }),
+    projectAccess: text("project_access").default("all").notNull(),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    unique("workspace_member_access_workspace_user_unique").on(
+      table.workspaceId,
+      table.userId,
+    ),
+    index("workspace_member_access_userId_idx").on(table.userId),
+  ],
+);
+
+export const workspaceMemberProjectTable = pgTable(
+  "workspace_member_project",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id").notNull(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, { onDelete: "cascade" }),
+    projectId: text("project_id").notNull(),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.workspaceId, table.projectId],
+      foreignColumns: [projectTable.workspaceId, projectTable.id],
+    })
+      .onDelete("cascade")
+      .onUpdate("cascade"),
+    unique("workspace_member_project_workspace_user_project_unique").on(
+      table.workspaceId,
+      table.userId,
+      table.projectId,
+    ),
+    index("workspace_member_project_projectId_idx").on(table.projectId),
   ],
 );
 
@@ -398,6 +496,26 @@ export const workflowRuleTable = pgTable(
     index("workflow_rule_projectId_idx").on(table.projectId),
     index("workflow_rule_columnId_idx").on(table.columnId),
   ],
+);
+
+export const calendarFeedTable = pgTable(
+  "calendar_feed",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    projectId: text("project_id")
+      .notNull()
+      .references(() => projectTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    token: text("token").notNull().unique(),
+    labelIds: jsonb("label_ids").$type<string[]>().notNull(),
+    timeZone: text("time_zone").notNull().default("UTC"),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+  },
+  (table) => [index("calendar_feed_project_id_idx").on(table.projectId)],
 );
 
 export const taskTable = pgTable(
@@ -577,6 +695,7 @@ export const activityTable = pgTable(
   (table) => [
     index("activity_task_id_idx").on(table.taskId),
     index("activity_userId_idx").on(table.userId),
+    index("activity_createdAt_idx").on(table.createdAt),
     unique("activity_task_external_source_external_url_unique").on(
       table.taskId,
       table.externalSource,
@@ -629,6 +748,11 @@ export const assetTable = pgTable(
     index("asset_taskId_idx").on(table.taskId),
     index("asset_activityId_idx").on(table.activityId),
     index("asset_createdBy_idx").on(table.createdBy),
+    index("asset_draft_expiry_idx")
+      .on(table.createdAt, table.id)
+      .where(
+        sql`${table.taskId} is null and ${table.surface} in ('draft', 'draft-pending')`,
+      ),
   ],
 );
 
@@ -927,12 +1051,13 @@ export const externalLinkTable = pgTable(
         onDelete: "cascade",
         onUpdate: "cascade",
       }),
-    integrationId: text("integration_id")
-      .notNull()
-      .references(() => integrationTable.id, {
+    integrationId: text("integration_id").references(
+      () => integrationTable.id,
+      {
         onDelete: "cascade",
         onUpdate: "cascade",
-      }),
+      },
+    ),
     resourceType: text("resource_type").notNull(),
     externalId: text("external_id").notNull(),
     url: text("url").notNull(),
@@ -949,6 +1074,11 @@ export const externalLinkTable = pgTable(
     index("external_link_integrationId_idx").on(table.integrationId),
     index("external_link_externalId_idx").on(table.externalId),
     index("external_link_resourceType_idx").on(table.resourceType),
+    index("external_link_deferred_issue_idx")
+      .on(table.id)
+      .where(
+        sql`${table.resourceType} = 'issue' AND ${table.metadata} LIKE '%"deferredIssueEdit":%'`,
+      ),
   ],
 );
 
@@ -1262,3 +1392,17 @@ export const customFieldValueTable = pgTable(
     ),
   ],
 );
+
+// These records outlive their original owner so failed object deletion can retry.
+export const storageCleanupTable = pgTable("storage_cleanup", {
+  objectKey: text("object_key").primaryKey(),
+  lastAttemptAt: timestamp("last_attempt_at", { mode: "date" }),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+export const dataMigrationTable = pgTable("data_migration", {
+  id: text("id").primaryKey(),
+  completedAt: timestamp("completed_at", { mode: "date" })
+    .defaultNow()
+    .notNull(),
+});

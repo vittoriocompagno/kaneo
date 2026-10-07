@@ -24,16 +24,16 @@ const messages = {
     footer: "Kaneo security email",
   },
   de: {
-    preview: "Setze dein Kaneo-Passwort zurueck",
-    title: "Passwort zuruecksetzen",
+    preview: "Setze dein Kaneo-Passwort zurück",
+    title: "Passwort zurücksetzen",
     subtitleWithName: (name: string) =>
-      `Hallo ${name}, verwende die Schaltflaeche unten, um ein neues Passwort festzulegen.`,
+      `Hallo ${name}, verwende die Schaltfläche unten, um ein neues Passwort festzulegen.`,
     subtitleDefault:
-      "Verwende die Schaltflaeche unten, um ein neues Passwort festzulegen.",
-    cta: "Passwort zuruecksetzen",
-    expiry: "Dieser Link laeuft in 1 Stunde ab.",
+      "Verwende die Schaltfläche unten, um ein neues Passwort festzulegen.",
+    cta: "Passwort zurücksetzen",
+    expiry: "Dieser Link läuft in 1 Stunde ab.",
     ignore:
-      "Wenn du das nicht angefordert hast, werden keine Aenderungen vorgenommen.",
+      "Wenn du das nicht angefordert hast, werden keine Änderungen vorgenommen.",
     footer: "Kaneo Sicherheits-E-Mail",
   },
   vi: {
@@ -58,6 +58,17 @@ const messages = {
     expiry: "このリンクの有効期限は1時間です。",
     ignore: "心当たりがない場合は、変更は行われません。",
     footer: "Kaneo セキュリティメール",
+  },
+  "zh-tw": {
+    preview: "重設你的 Kaneo 密碼",
+    title: "重設密碼",
+    subtitleWithName: (name: string) =>
+      `${name} 你好，請點選下方按鈕設定新密碼。`,
+    subtitleDefault: "請點選下方按鈕設定新密碼。",
+    cta: "重設密碼",
+    expiry: "此重設連結將在 1 小時後失效。",
+    ignore: "如果這不是你本人的操作，你的密碼不會有任何變更。",
+    footer: "Kaneo 安全性通知",
   },
 } as const;
 

@@ -8,8 +8,10 @@ import {
   inArray,
   lte,
   type SQL,
+  type SQLWrapper,
   sql,
 } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { HTTPException } from "hono/http-exception";
 import {
   columnTable,
@@ -17,9 +19,9 @@ import {
   labelTable,
   projectTable,
   taskTable,
+  taskRelationTable,
   userTable,
 } from "../../database/schema";
-
 import { boundedTaskRead, type TaskReadDatabase } from "../bounded-read";
 import {
   boardDescription,
@@ -27,8 +29,11 @@ import {
   descriptionDeferred,
   projectDescriptionDeferred,
 } from "../description-pages";
+import { taskIsCompleted } from "../task-is-completed";
+import { getSubtaskCounts } from "../get-subtask-counts";
 
 export type GetTasksOptions = {
+  publicOnly?: boolean;
   assigneeId?: string;
   dueAfter?: string;
   dueBefore?: string;
@@ -55,36 +60,50 @@ const priorityCaseExpr = sql<number>`CASE
   ELSE 0
 END`;
 
+function sortValue(sortBy: GetTasksOptions["sortBy"]): SQLWrapper {
+  switch (sortBy) {
+    case "createdAt":
+      return taskTable.createdAt;
+    case "priority":
+      return priorityCaseExpr;
+    case "dueDate":
+      return taskTable.dueDate;
+    case "title":
+      return taskTable.title;
+    case "number":
+      return taskTable.number;
+    default:
+      return taskTable.position;
+  }
+}
 function buildOrderBy(
   sortBy: GetTasksOptions["sortBy"],
   sortOrder: GetTasksOptions["sortOrder"],
 ): SQL {
-  const direction = sortOrder === "desc" ? desc : asc;
+  return (sortOrder === "desc" ? desc : asc)(sortValue(sortBy));
+}
 
-  switch (sortBy) {
-    case "createdAt":
-      return direction(taskTable.createdAt);
-    case "priority":
-      return direction(priorityCaseExpr);
-    case "dueDate":
-      return direction(taskTable.dueDate);
-    case "title":
-      return direction(taskTable.title);
-    case "number":
-      return direction(taskTable.number);
-    default:
-      return direction(taskTable.position);
-  }
+function boardRevision(
+  publicOnly: boolean | undefined,
+  fields: SQLWrapper[],
+): SQL<string> {
+  return publicOnly
+    ? sql<string>`coalesce(sum(hashtextextended(jsonb_build_array(${sql.join(fields, sql`, `)})::text, 0)::numeric), 0)::text`
+    : sql<string>`'0'`;
 }
 
 async function getTasksPage(
   db: TaskReadDatabase,
   projectId: string,
   options: GetTasksOptions,
+  userId?: string,
 ) {
   const [project] = await db
     .select({
       ...getTableColumns(projectTable),
+      revision: options.publicOnly
+        ? sql<string>`${projectTable}.xmin::text`
+        : sql<string>`'0'`,
       description: boardProjectDescription,
       descriptionDeferred: projectDescriptionDeferred,
     })
@@ -134,10 +153,26 @@ async function getTasksPage(
     options.sortOrder ?? "asc",
   );
 
-  const [taskCount] = await db
-    .select({ count: sql<number>`count(*)` })
+  const taskCountQuery = db
+    .select({
+      count: sql<number>`count(*)`,
+      revision: boardRevision(options.publicOnly, [
+        taskTable.id,
+        sortValue(options.sortBy),
+        taskTable.status,
+        // Row versions detect content edits without hashing large descriptions.
+        sql`${taskTable}.xmin::text`,
+        userTable.name,
+        userTable.image,
+      ]),
+    })
     .from(taskTable)
-    .where(whereClause);
+    .$dynamic();
+  const [taskCount] = await (
+    options.publicOnly
+      ? taskCountQuery.leftJoin(userTable, eq(taskTable.userId, userTable.id))
+      : taskCountQuery
+  ).where(whereClause);
 
   const total = Number(taskCount?.count ?? 0);
 
@@ -171,6 +206,14 @@ async function getTasksPage(
   const paginatedTasks = await query.limit(pageSize).offset(offset);
 
   const taskIds = paginatedTasks.map((task) => task.id);
+
+  const subtaskCounts = await getSubtaskCounts(
+    db,
+    taskIds,
+    project.workspaceId,
+    options.publicOnly ?? false,
+    userId,
+  );
 
   const labelsData =
     taskIds.length > 0
@@ -221,7 +264,7 @@ async function getTasksPage(
     Array<{
       id: string;
       taskId: string;
-      integrationId: string;
+      integrationId: string | null;
       resourceType: string;
       externalId: string;
       url: string;
@@ -278,22 +321,100 @@ async function getTasksPage(
     projectColumns.push(...taskColumns);
   }
   const [columnCount] = await db
-    .select({ count: sql<number>`count(*)` })
+    .select({
+      count: sql<number>`count(*)`,
+      revision: boardRevision(options.publicOnly, [
+        columnTable.id,
+        columnTable.slug,
+        columnTable.position,
+        columnTable.name,
+        columnTable.icon,
+        columnTable.isFinal,
+      ]),
+    })
     .from(columnTable)
     .where(eq(columnTable.projectId, projectId));
   let labelCount = 0;
   let linkCount = 0;
+  let labelRevision = "0";
+  let linkRevision = "0";
   if (taskIds.length) {
     const [labels] = await db
-      .select({ count: sql<number>`count(*)` })
+      .select({
+        count: sql<number>`count(*)`,
+        revision: boardRevision(options.publicOnly, [
+          labelTable.id,
+          labelTable.taskId,
+          labelTable.name,
+          labelTable.color,
+        ]),
+      })
       .from(labelTable)
       .where(inArray(labelTable.taskId, taskIds));
     const [links] = await db
-      .select({ count: sql<number>`count(*)` })
+      .select({
+        count: sql<number>`count(*)`,
+        revision: boardRevision(options.publicOnly, [
+          externalLinkTable.id,
+          externalLinkTable.taskId,
+          sql`${externalLinkTable}.xmin::text`,
+        ]),
+      })
       .from(externalLinkTable)
       .where(inArray(externalLinkTable.taskId, taskIds));
     labelCount = Number(labels?.count ?? 0);
     linkCount = Number(links?.count ?? 0);
+    labelRevision = labels?.revision ?? "0";
+    linkRevision = links?.revision ?? "0";
+  }
+
+  let publicRelatedRevision = "0";
+  if (options.publicOnly) {
+    // Every task page must detect edits to cards or metadata loaded earlier.
+    const [labels] = await db
+      .select({
+        revision: boardRevision(true, [
+          labelTable.id,
+          labelTable.taskId,
+          labelTable.name,
+          labelTable.color,
+        ]),
+      })
+      .from(labelTable)
+      .innerJoin(taskTable, eq(labelTable.taskId, taskTable.id))
+      .where(whereClause);
+    const [links] = await db
+      .select({
+        revision: boardRevision(true, [
+          externalLinkTable.id,
+          sql`${externalLinkTable}.xmin::text`,
+        ]),
+      })
+      .from(externalLinkTable)
+      .innerJoin(taskTable, eq(externalLinkTable.taskId, taskTable.id))
+      .where(whereClause);
+    const parent = alias(taskTable, "board_parent");
+    const [children] = await db
+      .select({
+        revision: boardRevision(true, [
+          taskRelationTable.id,
+          taskTable.id,
+          taskIsCompleted,
+        ]),
+      })
+      .from(taskRelationTable)
+      .innerJoin(parent, eq(taskRelationTable.sourceTaskId, parent.id))
+      .innerJoin(taskTable, eq(taskRelationTable.targetTaskId, taskTable.id))
+      .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
+      .where(
+        and(
+          eq(parent.projectId, projectId),
+          eq(taskRelationTable.relationType, "subtask"),
+          eq(projectTable.workspaceId, project.workspaceId),
+          eq(projectTable.isPublic, true),
+        ),
+      );
+    publicRelatedRevision = `${labels?.revision}:${links?.revision}:${children?.revision}`;
   }
 
   const columns = projectColumns.map((column) => ({
@@ -307,6 +428,7 @@ async function getTasksPage(
       .filter((task) => task.status === column.slug)
       .map((task) => ({
         ...task,
+        subtaskCounts: subtaskCounts.get(task.id) ?? { completed: 0, total: 0 },
         labels: taskLabelsMap.get(task.id) || [],
         externalLinks: taskExternalLinksMap.get(task.id) || [],
       })),
@@ -316,6 +438,7 @@ async function getTasksPage(
     .filter((task) => task.status === "archived")
     .map((task) => ({
       ...task,
+      subtaskCounts: subtaskCounts.get(task.id) ?? { completed: 0, total: 0 },
       labels: taskLabelsMap.get(task.id) || [],
       externalLinks: taskExternalLinksMap.get(task.id) || [],
     }));
@@ -324,6 +447,7 @@ async function getTasksPage(
     .filter((task) => task.status === "planned")
     .map((task) => ({
       ...task,
+      subtaskCounts: subtaskCounts.get(task.id) ?? { completed: 0, total: 0 },
       labels: taskLabelsMap.get(task.id) || [],
       externalLinks: taskExternalLinksMap.get(task.id) || [],
     }));
@@ -338,12 +462,19 @@ async function getTasksPage(
       descriptionDeferred: project.descriptionDeferred,
       isPublic: project.isPublic,
       workspaceId: project.workspaceId,
+      backgroundVersion: project.backgroundVersion,
       columns,
       archivedTasks,
       plannedTasks,
     },
     pagination: {
       total,
+      ...(options.publicOnly
+        ? {
+            revision: `${project.revision}:${total}:${taskCount?.revision}:${columnCount?.count}:${columnCount?.revision}:${publicRelatedRevision}`,
+            relatedRevision: `${labelCount}:${labelRevision}:${linkCount}:${linkRevision}`,
+          }
+        : {}),
       page,
       pageSize,
       totalPages: Math.max(1, Math.ceil(total / pageSize)),
@@ -375,9 +506,10 @@ function parseMetadata(raw: string | null): Record<string, unknown> | null {
 export default function getTasks(
   projectId: string,
   options: GetTasksOptions = {},
+  userId?: string,
 ) {
   return boundedTaskRead(
-    (db) => getTasksPage(db, projectId, options),
+    (db) => getTasksPage(db, projectId, options, userId),
     "Task list request took too long; retry later",
   );
 }

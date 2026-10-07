@@ -1,9 +1,25 @@
 import { act, cleanup, renderHook } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vite-plus/test";
 import { useProjectWebSocket } from "./use-project-websocket";
 
 const { client, auth } = vi.hoisted(() => ({
-  client: { invalidateQueries: vi.fn() },
+  client: {
+    getQueryCache: () => ({ subscribe: () => () => {}, findAll: () => [] }),
+    getQueryState: vi.fn(),
+    cancelQueries: vi.fn().mockResolvedValue(undefined),
+    invalidateQueries: vi.fn(),
+    setQueryData: vi.fn(),
+    setQueriesData: vi.fn(),
+    getQueriesData: vi.fn().mockReturnValue([]),
+    getQueryData: vi.fn(),
+  },
   auth: { userId: "user-a" as string | null },
 }));
 vi.mock("@tanstack/react-query", () => ({ useQueryClient: () => client }));
@@ -56,7 +72,9 @@ describe("project WebSocket lifecycle", () => {
   it("ignores late old-project events without stopping the new project's keepalive", () => {
     const { rerender, unmount } = renderHook(
       ({ id }) => useProjectWebSocket(id),
-      { initialProps: { id: "project-a" } },
+      {
+        initialProps: { id: "project-a" },
+      },
     );
     const old = TestSocket.instances[0];
     act(() => old.open());
@@ -105,10 +123,45 @@ describe("project WebSocket lifecycle", () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 
+  it("refreshes project and task caches when the workspace changes", () => {
+    renderHook(() => useProjectWebSocket("project-a"));
+    act(() =>
+      TestSocket.instances[0].onmessage?.({
+        data: JSON.stringify({ type: "PROJECT_MOVED", projectId: "project-a" }),
+      }),
+    );
+    for (const queryKey of [
+      ["projects"],
+      ["project", "project-a"],
+      ["tasks", "project-a"],
+      ["task"],
+      ["task-relations"],
+    ]) {
+      expect(client.invalidateQueries).toHaveBeenCalledWith({ queryKey });
+    }
+  });
+
+  it("refreshes task resources after a task move", () => {
+    renderHook(() => useProjectWebSocket("project-a"));
+    act(() =>
+      TestSocket.instances[0].onmessage?.({
+        data: JSON.stringify({
+          type: "TASK_MOVED",
+          projectId: "project-a",
+          taskId: "task-a",
+        }),
+      }),
+    );
+    expect(client.invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["external-links", "task-a"],
+    });
+  });
+
   it("preserves bounded exponential reconnects and active message invalidation", () => {
     const { unmount } = renderHook(() => useProjectWebSocket("project-a"));
     for (let retry = 0; retry < 5; retry++) {
       act(() => {
+        TestSocket.instances.at(-1)?.open();
         TestSocket.instances.at(-1)?.onclose?.();
         vi.advanceTimersByTime(1000 * 2 ** retry);
       });

@@ -8,25 +8,33 @@ import {
   userNotificationPreferenceTable,
   workspaceUserTable,
 } from "../database/schema";
-import createNotification from "../notification/controllers/create-notification";
-import { REMINDER_WINDOW_MINUTES } from "./reminder-timing";
+import {
+  persistNotification,
+  dispatchNotification,
+} from "../notification/controllers/create-notification";
+import {
+  DUE_DATE_DURATION_MS,
+  REMINDER_WINDOW_MINUTES,
+} from "./reminder-timing";
 
 type ReminderType = "configured_before" | "overdue";
 
 const MINUTE_MS = 60 * 1000;
 
 function buildWindows(now: Date) {
-  const nowMs = now.getTime();
+  // Shift the window to stored day-start timestamps, preserving indexed lookups.
+  const nowMs = now.getTime() - DUE_DATE_DURATION_MS;
+  const windowEnd = new Date(nowMs);
 
   return {
     upcoming: {
       start: new Date(nowMs - REMINDER_WINDOW_MINUTES * MINUTE_MS),
-      end: now,
+      end: windowEnd,
       type: "configured_before" as ReminderType,
       notificationType: "due_date_reminder" as const,
     },
     overdue: {
-      end: now,
+      end: windowEnd,
       start: new Date(nowMs - 10 * MINUTE_MS),
       type: "overdue" as ReminderType,
       notificationType: "task_overdue" as const,
@@ -106,9 +114,8 @@ async function processReminder(
 ) {
   if (!task.userId) return;
 
-  // Insert sent record first; if it already exists, skip notification
-  try {
-    const [inserted] = await db
+  const notification = await db.transaction(async (tx) => {
+    const [claimed] = await tx
       .insert(taskReminderSentTable)
       .values({
         taskId: task.id,
@@ -121,29 +128,30 @@ async function processReminder(
         ],
       })
       .returning();
+    if (!claimed) return null;
 
-    if (!inserted) return;
-  } catch (error) {
-    console.error("Failed to record due date reminder", {
-      taskId: task.id,
-      reminderType,
-      error,
-    });
-    return;
-  }
-
-  await createNotification({
-    userId: task.userId,
-    type: notificationType,
-    eventData: {
-      taskTitle: task.title,
-      reminderType,
-      leadTimeMinutes: task.leadTimeMinutes ?? 1440,
-      dueDate: task.dueDate?.toISOString() ?? null,
-    },
-    resourceId: task.id,
-    resourceType: "task",
+    const created = await persistNotification(
+      {
+        userId: task.userId!,
+        type: notificationType,
+        eventData: {
+          taskTitle: task.title,
+          reminderType,
+          leadTimeMinutes: task.leadTimeMinutes ?? 1440,
+          dueDate: task.dueDate?.toISOString() ?? null,
+        },
+        resourceId: task.id,
+        resourceType: "task",
+      },
+      tx,
+    );
+    if (!created)
+      await tx
+        .delete(taskReminderSentTable)
+        .where(eq(taskReminderSentTable.id, claimed.id));
+    return created;
   });
+  if (notification) await dispatchNotification(notification);
 }
 
 export async function checkDueDateReminders(): Promise<{ degraded: boolean }> {

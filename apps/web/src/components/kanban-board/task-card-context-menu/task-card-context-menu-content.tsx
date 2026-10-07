@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { X } from "lucide-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -12,6 +13,7 @@ import {
   ContextMenuSubContent,
   ContextMenuSubTrigger,
 } from "@/components/ui/context-menu";
+import { useDuplicateTask } from "@/hooks/mutations/task/use-duplicate-task";
 import { useUpdateTask } from "@/hooks/mutations/task/use-update-task";
 import { useUpdateTaskAssignee } from "@/hooks/mutations/task/use-update-task-assignee";
 import { useUpdateTaskDescription } from "@/hooks/mutations/task/use-update-task-description";
@@ -19,20 +21,23 @@ import { useUpdateTaskDueDate } from "@/hooks/mutations/task/use-update-task-due
 import { useUpdateTaskStatus } from "@/hooks/mutations/task/use-update-task-status";
 import { useUpdateTaskPriority } from "@/hooks/mutations/task/use-update-task-status-priority";
 import { useUpdateTaskTitle } from "@/hooks/mutations/task/use-update-task-title";
+import type getProjects from "@/fetchers/project/get-projects";
 import { useGetColumns } from "@/hooks/queries/column/use-get-columns";
-import { useGetActiveWorkspaceUsers } from "@/hooks/queries/workspace-users/use-get-active-workspace-users";
+import useGetProjectMembers from "@/hooks/queries/workspace-users/use-get-project-members";
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 import { getColumnIcon } from "@/lib/column";
 import { generateLink } from "@/lib/generate-link";
 import { getInitials } from "@/lib/get-initials";
 import { getPriorityLabel } from "@/lib/i18n/domain";
 import { getPriorityIcon } from "@/lib/priority";
+import { getTaskPath } from "@/lib/task-link";
 import { toast } from "@/lib/toast";
 import useProjectStore from "@/store/project";
 import type Task from "@/types/task";
 
 type TaskCardContext = {
   worskpaceId: string;
+  workspaceSlug?: string | null;
   projectId: string;
 };
 
@@ -49,6 +54,7 @@ export default function TaskCardContextMenuContent({
 }: TaskCardContextMenuContentProps) {
   const { t } = useTranslation();
   const { project } = useProjectStore();
+  const queryClient = useQueryClient();
   const { data: columnsData = [] } = useGetColumns(taskCardContext.projectId);
   const columns =
     project?.columns && project.columns.length > 0
@@ -64,9 +70,10 @@ export default function TaskCardContextMenuContent({
           icon: col.icon,
           isFinal: col.isFinal,
         }));
-  const { data: workspaceUsers } = useGetActiveWorkspaceUsers(
-    taskCardContext.worskpaceId,
-  );
+  const { data: projectMembers } = useGetProjectMembers({
+    workspaceId: taskCardContext.worskpaceId,
+    projectId: taskCardContext.projectId,
+  });
   const { mutateAsync: updateTask } = useUpdateTask();
   const { mutateAsync: updateTaskPriority } = useUpdateTaskPriority();
   const { mutateAsync: updateTaskStatus } = useUpdateTaskStatus();
@@ -74,27 +81,49 @@ export default function TaskCardContextMenuContent({
   const { mutateAsync: updateTaskTitle } = useUpdateTaskTitle();
   const { mutateAsync: updateTaskDescription } = useUpdateTaskDescription();
   const { mutateAsync: updateTaskDueDate } = useUpdateTaskDueDate();
-  const { canUpdateTasks, canDeleteTasks, canAssignTasks } =
+  const { mutate: duplicateTask } = useDuplicateTask();
+  const { canCreateTasks, canUpdateTasks, canDeleteTasks, canAssignTasks } =
     useWorkspacePermission();
+  const canCreate = canCreateTasks();
   const canEdit = canUpdateTasks();
   const canDelete = canDeleteTasks();
   const canAssign = canAssignTasks();
 
   const usersOptions = useMemo(() => {
-    return workspaceUsers?.members?.map((member) => ({
-      label: member?.user?.name ?? member.userId,
-      value: member.userId,
-      image: member?.user?.image ?? "",
-      name: member?.user?.name ?? "",
+    return projectMembers?.map((member) => ({
+      label: member.name || member.email,
+      value: member.id,
+      image: member.image ?? "",
+      name: member.name,
     }));
-  }, [workspaceUsers]);
+  }, [projectMembers]);
 
   const handleCopyTaskLink = () => {
-    const path = `/dashboard/workspace/${taskCardContext.worskpaceId}/project/${taskCardContext.projectId}/task/${task.id}`;
+    const path = getTaskPath({
+      workspaceId: taskCardContext.worskpaceId,
+      workspace: {
+        id: taskCardContext.worskpaceId,
+        slug: taskCardContext.workspaceSlug,
+      },
+      projectId: taskCardContext.projectId,
+      workspaceProjects: queryClient.getQueryData<
+        Awaited<ReturnType<typeof getProjects>>
+      >(["projects", taskCardContext.worskpaceId]),
+      taskId: task.id,
+      taskNumber: task.number,
+      title: task.title,
+    });
     const taskLink = generateLink(path);
 
     navigator.clipboard.writeText(taskLink);
     toast.success(t("tasks:contextMenu.copyLinkSuccess"));
+  };
+
+  const handleDuplicateTask = () => {
+    duplicateTask({
+      taskId: task.id,
+      title: t("tasks:duplicate.titleSuffix", { title: task.title }),
+    });
   };
 
   const handleChange = async (field: keyof Task, value: string | Date) => {
@@ -295,24 +324,33 @@ export default function TaskCardContextMenuContent({
         </ContextMenuSub>
       )}
 
-      {(canEdit || canDelete) && (
+      {(canCreate || canEdit || canDelete) && (
         <>
-          {canEdit && (
+          {(canCreate || canEdit) && (
             <>
               <ContextMenuSeparator />
 
-              <ContextMenuItem
-                onClick={() => handleChange("status", "archived")}
-              >
-                <span>{t("tasks:actions.archive")}</span>
-              </ContextMenuItem>
-
-              {task.status !== "planned" && (
-                <ContextMenuItem
-                  onClick={() => handleChange("status", "planned")}
-                >
-                  <span>{t("tasks:actions.markAsPlanned")}</span>
+              {canCreate && (
+                <ContextMenuItem onClick={handleDuplicateTask}>
+                  <span>{t("tasks:actions.duplicate")}</span>
                 </ContextMenuItem>
+              )}
+
+              {canEdit && (
+                <>
+                  <ContextMenuItem
+                    onClick={() => handleChange("status", "archived")}
+                  >
+                    <span>{t("tasks:actions.archive")}</span>
+                  </ContextMenuItem>
+                  {task.status !== "planned" && (
+                    <ContextMenuItem
+                      onClick={() => handleChange("status", "planned")}
+                    >
+                      <span>{t("tasks:actions.markAsPlanned")}</span>
+                    </ContextMenuItem>
+                  )}
+                </>
               )}
             </>
           )}

@@ -2,10 +2,11 @@ import { useLocation, useNavigate } from "@tanstack/react-router";
 import {
   CalendarDays,
   CalendarRange,
+  LayoutDashboard,
   SquareKanban,
   SquircleDashed,
 } from "lucide-react";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import MobileProjectNav from "@/components/common/header/mobile-project-nav";
 import ProjectCrumbSelect from "@/components/common/header/project-crumb-select";
@@ -23,8 +24,14 @@ import {
 } from "@/components/ui/tooltip";
 import { shortcuts } from "@/constants/shortcuts";
 import useGetProject from "@/hooks/queries/project/use-get-project";
+import useGetProjects from "@/hooks/queries/project/use-get-projects";
 import { useProjectWebSocket } from "@/hooks/use-project-websocket";
 import { cn } from "@/lib/cn";
+import { getProjectFamily } from "@/lib/project-tree";
+import { getProjectUnavailableReason } from "@/lib/project-unavailable-reason";
+import { useBackgroundStore } from "@/store/background";
+import { ProjectFamilyBar } from "./project-family-bar";
+import ProjectUnavailable from "./project-unavailable";
 
 type ProjectLayoutProps = {
   projectId: string;
@@ -32,7 +39,7 @@ type ProjectLayoutProps = {
   headerActions?: ReactNode;
   children: ReactNode;
   showViewSwitcher?: boolean;
-  activeView?: "backlog" | "board" | "calendar" | "gantt";
+  activeView?: "backlog" | "board" | "calendar" | "dashboard" | "gantt";
 };
 
 export default function ProjectLayout({
@@ -46,21 +53,41 @@ export default function ProjectLayout({
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const { data: project } = useGetProject({ id: projectId, workspaceId });
+  const { data: project, error: projectError } = useGetProject({
+    id: projectId,
+    workspaceId,
+  });
+  const unavailableReason = getProjectUnavailableReason(projectError);
   const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] =
     useState(false);
+  const { background } = useBackgroundStore();
+  const { data: projects } = useGetProjects({ workspaceId });
+  const family = useMemo(
+    () => getProjectFamily(projects ?? [], projectId),
+    [projects, projectId],
+  );
+  const hasFamily = Boolean(family.parent) || family.children.length > 0;
 
-  useProjectWebSocket(projectId);
+  useProjectWebSocket(unavailableReason ? "" : projectId);
 
   const resolvedView =
     activeView ??
-    (location.pathname.includes("/backlog")
-      ? "backlog"
-      : location.pathname.includes("/calendar")
-        ? "calendar"
-        : location.pathname.includes("/gantt")
-          ? "gantt"
-          : "board");
+    (location.pathname.endsWith("/dashboard")
+      ? "dashboard"
+      : location.pathname.includes("/backlog")
+        ? "backlog"
+        : location.pathname.includes("/calendar")
+          ? "calendar"
+          : location.pathname.includes("/gantt")
+            ? "gantt"
+            : "board");
+
+  const handleNavigateToDashboard = () => {
+    navigate({
+      to: "/dashboard/workspace/$workspaceId/project/$projectId/dashboard",
+      params: { workspaceId, projectId },
+    });
+  };
 
   const handleNavigateToBacklog = () => {
     navigate({
@@ -93,13 +120,15 @@ export default function ProjectLayout({
   const handleProjectSwitch = (nextProjectId: string) => {
     navigate({
       to:
-        resolvedView === "backlog"
-          ? "/dashboard/workspace/$workspaceId/project/$projectId/backlog"
-          : resolvedView === "calendar"
-            ? "/dashboard/workspace/$workspaceId/project/$projectId/calendar"
-            : resolvedView === "gantt"
-              ? "/dashboard/workspace/$workspaceId/project/$projectId/gantt"
-              : "/dashboard/workspace/$workspaceId/project/$projectId/board",
+        resolvedView === "dashboard"
+          ? "/dashboard/workspace/$workspaceId/project/$projectId/dashboard"
+          : resolvedView === "backlog"
+            ? "/dashboard/workspace/$workspaceId/project/$projectId/backlog"
+            : resolvedView === "calendar"
+              ? "/dashboard/workspace/$workspaceId/project/$projectId/calendar"
+              : resolvedView === "gantt"
+                ? "/dashboard/workspace/$workspaceId/project/$projectId/gantt"
+                : "/dashboard/workspace/$workspaceId/project/$projectId/board",
       params: {
         workspaceId,
         projectId: nextProjectId,
@@ -109,7 +138,11 @@ export default function ProjectLayout({
 
   return (
     <Layout>
-      <Layout.Header className="h-11 border-border/80 px-2">
+      <Layout.Header
+        className={cn("h-11 border-border/80 px-2", {
+          "bg-card/90 backdrop-blur": !!background,
+        })}
+      >
         <div className="flex w-full items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-2">
             <TooltipProvider>
@@ -150,6 +183,7 @@ export default function ProjectLayout({
                 workspaceId={workspaceId}
                 projectId={projectId}
                 activeView={resolvedView}
+                onSelectDashboard={handleNavigateToDashboard}
                 onSelectBacklog={handleNavigateToBacklog}
                 onSelectBoard={handleNavigateToBoard}
                 onSelectCalendar={handleNavigateToCalendar}
@@ -159,8 +193,20 @@ export default function ProjectLayout({
               />
             </div>
 
-            {showViewSwitcher && (
+            {showViewSwitcher && !unavailableReason && (
               <div className="hidden h-8 items-center gap-0.5 rounded-lg border border-border/80 bg-background p-0.5 sm:inline-flex">
+                <Button
+                  variant={resolvedView === "dashboard" ? "secondary" : "ghost"}
+                  size="xs"
+                  onClick={handleNavigateToDashboard}
+                  className={cn(
+                    "h-6 gap-1.5 rounded-md px-2 text-xs",
+                    resolvedView !== "dashboard" && "text-muted-foreground",
+                  )}
+                >
+                  <LayoutDashboard className="size-3.5" />
+                  {t("tasks:dashboard.title")}
+                </Button>
                 <Button
                   variant={resolvedView === "backlog" ? "secondary" : "ghost"}
                   size="xs"
@@ -214,12 +260,31 @@ export default function ProjectLayout({
           </div>
 
           <div className="flex shrink-0 items-center gap-1.5">
-            {headerActions}
+            {unavailableReason ? null : headerActions}
           </div>
         </div>
       </Layout.Header>
 
-      <Layout.Content>{children}</Layout.Content>
+      <Layout.Content>
+        {unavailableReason ? (
+          <ProjectUnavailable
+            reason={unavailableReason}
+            workspaceId={workspaceId}
+          />
+        ) : hasFamily ? (
+          <div className="flex h-full flex-col">
+            <ProjectFamilyBar
+              workspaceId={workspaceId}
+              parent={family.parent}
+              subprojects={family.children}
+              view={resolvedView === "dashboard" ? "dashboard" : "board"}
+            />
+            <div className="min-h-0 flex-1">{children}</div>
+          </div>
+        ) : (
+          children
+        )}
+      </Layout.Content>
 
       <CreateProjectModal
         open={isCreateProjectModalOpen}

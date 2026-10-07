@@ -11,6 +11,10 @@ import {
   taskTable,
   workflowRuleTable,
 } from "../../database/schema";
+import { grantProjectToRestrictedMember } from "../../project-access/grant-project-to-restricted-member";
+import { projectAccessCondition } from "../../project-access/project-access-condition";
+import { assertCanNestUnder } from "../hierarchy";
+import { findProjectKeyConflict, projectKeyTakenMessage } from "../project-key";
 
 export const DEFAULT_PROJECT_COLUMNS = [
   { name: "To Do", slug: "to-do", position: 0, isFinal: false },
@@ -25,6 +29,9 @@ type CreateProjectOptions = {
   sourceProjectId?: string;
   includeTasks?: boolean;
   asTemplate?: boolean;
+  // Nest the new project under this one. Never inherited from a copy source:
+  // duplicating a subproject or a parent does not duplicate the hierarchy.
+  parentProjectId?: string;
 };
 
 async function createProject(
@@ -32,11 +39,18 @@ async function createProject(
   name: string,
   icon: string,
   slug: string,
+  userId: string,
   options: CreateProjectOptions = {},
 ) {
   if (options.asTemplate && !options.sourceProjectId) {
     throw new HTTPException(400, {
       message: "A source project is required to save a template",
+    });
+  }
+
+  if (options.asTemplate && options.parentProjectId) {
+    throw new HTTPException(400, {
+      message: "A template cannot be a subproject",
     });
   }
 
@@ -49,11 +63,21 @@ async function createProject(
       sql`SELECT pg_advisory_xact_lock(1524, hashtext(${workspaceId}))`,
     );
 
+    const keyConflict = await findProjectKeyConflict(tx, workspaceId, slug);
+    if (keyConflict) {
+      throw new HTTPException(409, {
+        message: projectKeyTakenMessage(slug, keyConflict.name),
+      });
+    }
+
+    // A member restricted to selected projects must not copy, or learn about,
+    // a project outside their grants, so an inaccessible source reads as 404.
     const source = options.sourceProjectId
       ? await tx.query.projectTable.findFirst({
           where: and(
             eq(projectTable.id, options.sourceProjectId),
             eq(projectTable.workspaceId, workspaceId),
+            projectAccessCondition(userId, projectTable.id),
           ),
         })
       : undefined;
@@ -61,6 +85,15 @@ async function createProject(
       throw new HTTPException(404, { message: "Source project not found" });
     }
 
+    if (options.parentProjectId) {
+      await assertCanNestUnder(tx, {
+        workspaceId,
+        userId,
+        parentProjectId: options.parentProjectId,
+      });
+    }
+
+    // New projects go to the bottom of the workspace's ordering.
     const [{ maxPosition } = { maxPosition: null }] = await tx
       .select({ maxPosition: max(projectTable.position) })
       .from(projectTable)
@@ -75,6 +108,7 @@ async function createProject(
         slug,
         description: source?.description,
         isTemplate: options.asTemplate ?? false,
+        parentProjectId: options.parentProjectId ?? null,
         position: maxPosition === null ? 0 : maxPosition + 1,
       })
       .returning();
@@ -82,6 +116,12 @@ async function createProject(
     if (!createdProject) {
       throw new HTTPException(500, { message: "Failed to create project" });
     }
+
+    await grantProjectToRestrictedMember(tx, {
+      workspaceId,
+      userId,
+      projectId: createdProject.id,
+    });
 
     if (!source) {
       await tx.insert(columnTable).values(

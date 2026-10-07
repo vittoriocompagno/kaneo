@@ -49,6 +49,7 @@ const navigationLinks: NavigationLink[] = [
       { href: "/docs/core", label: landing.navigation.docs },
       { href: "/guides", label: landing.navigation.guides },
       { href: "/alternatives", label: landing.navigation.comparisons },
+      { href: "/community", label: landing.navigation.community },
       {
         href: "https://cloud.kaneo.app/public-project/vlu4ak2w8rs9rn1r4lirj2u1",
         label: landing.navigation.roadmap,
@@ -119,18 +120,14 @@ export function Navbar() {
             className="hidden text-sm md:inline-flex"
             size="sm"
             variant="ghost"
-            onClick={() => {
-              window.location.href = "https://cloud.kaneo.app/auth/sign-in";
-            }}
+            render={<a href="https://cloud.kaneo.app/auth/sign-in" />}
           >
             {landing.navigation.signIn}
           </Button>
           <Button
             className="text-sm"
             size="sm"
-            onClick={() => {
-              window.location.href = "https://cloud.kaneo.app";
-            }}
+            render={<a href="https://cloud.kaneo.app/auth/sign-up" />}
           >
             {landing.navigation.getStarted}
           </Button>

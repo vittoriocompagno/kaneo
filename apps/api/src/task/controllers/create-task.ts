@@ -1,11 +1,14 @@
-import { and, eq } from "drizzle-orm";
+import { extractAssetIds } from "../../storage/cleanup-assets";
+import { and, eq, inArray, isNull } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import {
+  assetTable,
   columnTable,
   customFieldDefinitionTable,
   customFieldValueTable,
   taskTable,
+  projectTable,
   userTable,
 } from "../../database/schema";
 import { publishEvent } from "../../events";
@@ -16,6 +19,7 @@ import {
 import {
   assertRequiredCustomFields,
   assertValidTaskStatus,
+  isCustomFieldValueEmpty,
 } from "../validate-task-fields";
 import { claimTaskNumber } from "./claim-task-numbers";
 import { nextTaskPosition } from "./next-task-position";
@@ -52,6 +56,7 @@ async function createTask({
   description,
   priority,
   customFields,
+  draftAssetIds,
 }: {
   projectId: string;
   currentUserId: string;
@@ -63,6 +68,7 @@ async function createTask({
   description?: string;
   priority?: string;
   customFields?: CustomFieldInput[];
+  draftAssetIds?: string[];
 }) {
   const resolvedStatus = status || "to-do";
   const resolvedPriority = priority || "no-priority";
@@ -85,7 +91,15 @@ async function createTask({
       !providedFieldIds.has(field.id) &&
       field.required &&
       field.defaultValue != null &&
-      field.defaultValue.trim() !== ""
+      !isCustomFieldValueEmpty(
+        field.defaultValue,
+        field.type as
+          | "number"
+          | "boolean"
+          | "date"
+          | "dropdown"
+          | "multiselect",
+      )
     ) {
       mergedCustomFields.push({
         fieldId: field.id,
@@ -102,6 +116,7 @@ async function createTask({
     await assertAssignableUser(
       normalizedUserId,
       await getProjectWorkspaceId(projectId),
+      projectId,
     );
 
     [assignee] = await db
@@ -142,6 +157,44 @@ async function createTask({
         position: nextPosition,
       })
       .returning();
+
+    if (task && draftAssetIds?.length) {
+      const referenced = extractAssetIds(description);
+      const ids = [...new Set(draftAssetIds)].filter((id) =>
+        referenced.has(id),
+      );
+      if (ids.length) {
+        // claimTaskNumber already holds the project row lock in this transaction.
+        const project = await tx.query.projectTable.findFirst({
+          columns: { workspaceId: true },
+          where: eq(projectTable.id, projectId),
+        });
+        if (!project)
+          throw new HTTPException(404, { message: "Project not found" });
+        const claimed = await tx
+          .update(assetTable)
+          .set({
+            taskId: task.id,
+            surface: "description",
+            workspaceId: project.workspaceId,
+          })
+          .where(
+            and(
+              inArray(assetTable.id, ids),
+              eq(assetTable.projectId, projectId),
+              eq(assetTable.createdBy, currentUserId),
+              eq(assetTable.surface, "draft"),
+              isNull(assetTable.taskId),
+            ),
+          )
+          .returning({ id: assetTable.id });
+        if (claimed.length !== ids.length)
+          throw new HTTPException(400, {
+            message:
+              "Some staged uploads are unavailable or belong to another owner/project",
+          });
+      }
+    }
 
     if (task && mergedCustomFields.length) {
       await tx.insert(customFieldValueTable).values(

@@ -1,10 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
+import { landing } from "@/lib/landing";
 import "./globals.css";
 
-const siteTitle = "Kaneo - Project management that doesn't become the project.";
-const siteDescription =
-  "Fast, open-source project management for teams that want clear ownership without heavy process. Use Kaneo Cloud or host it yourself.";
+const siteTitle = landing.seo.title;
+const siteDescription = landing.seo.description;
 
 export const viewport: Viewport = {
   themeColor: [
@@ -104,7 +104,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body>
         <script
-          // biome-ignore lint/security/noDangerouslySetInnerHtml: This is necessary to apply the user's preferred color scheme before React hydration to prevent a flash of incorrect theme.
+          // eslint-disable-next-line react/no-danger -- This is necessary to apply the user's preferred color scheme before React hydration to prevent a flash of incorrect theme.
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
@@ -128,7 +128,7 @@ export default function RootLayout({
         {children}
         <script
           type="application/ld+json"
-          // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data must be inlined as a script tag for search engines to parse.
+          // eslint-disable-next-line react/no-danger -- JSON-LD structured data must be inlined as a script tag for search engines to parse.
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
         <Script

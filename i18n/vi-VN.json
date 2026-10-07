@@ -117,7 +117,10 @@
 				"deleteTemplateTitle": "Delete template?",
 				"deleteTemplateDescription": "This permanently deletes “{{name}}” and any tasks saved in it. Projects created from it are unaffected.",
 				"templateDeletedToast": "Template deleted",
-				"templateDeleteError": "Failed to delete template"
+				"templateDeleteError": "Failed to delete template",
+				"noParent": "None (top-level project)",
+				"parentHint": "A subproject is a full project with its own board. It sits under its parent in the sidebar.",
+				"parentLabel": "Parent project"
 			},
 			"createWorkspace": {
 				"breadcrumbKaneo": "KANEO",
@@ -173,7 +176,8 @@
 					"terracotta": "Đất nung",
 					"rose": "Hồng",
 					"crimson": "Đỏ thẫm"
-				}
+				},
+				"statusLoadError": "Project statuses couldn’t be loaded."
 			}
 		},
 		"boolean": {
@@ -232,6 +236,24 @@
 			"inboxMessage": "Chúng tôi đã gửi cho bạn một liên kết đăng nhập tạm thời. Vui lòng kiểm tra hộp thư tại <email>{{email}}</email>.",
 			"emailFallback": "địa chỉ email của bạn",
 			"backToLogin": "Quay lại đăng nhập"
+		},
+		"cloud": {
+			"signUp": {
+				"title": "Tiếp theo là gì",
+				"description": "Sau khi tạo tài khoản, bạn sẽ đặt tên cho không gian làm việc. Từ đó bạn có thể thêm dự án và bắt đầu viết công việc."
+			},
+			"onboarding": {
+				"title": "Không gian làm việc là gì",
+				"description": "Không gian làm việc chứa các dự án, công việc của chúng và những người bạn làm việc cùng. Mời đồng đội sau khi thiết lập xong."
+			},
+			"invite": {
+				"description": "Everyone in a workspace sees the same boards and gets live updates as tasks move. Roles control who can change what.",
+				"title": "Work better together"
+			},
+			"plan": {
+				"description": "Every plan includes unlimited projects and tasks, automatic backups, and updates. Cancel anytime from billing settings.",
+				"title": "Try everything first"
+			}
 		},
 		"signUp": {
 			"pageTitle": "Tạo tài khoản",
@@ -340,6 +362,42 @@
 			},
 			"validation": {
 				"workspaceNameRequired": "Cần có tên không gian làm việc"
+			},
+			"restrictedSubtitle": "Tại đây chỉ quản trị viên hệ thống mới có thể tạo không gian làm việc. Hãy xin lời mời rồi tải lại trang này.",
+			"restrictedCheckInvitations": "Xem lời mời",
+			"restrictedTitle": "Bạn cần một lời mời",
+			"cloud": {
+				"title": "Đặt tên cho không gian làm việc",
+				"subtitle": "Dùng tên nhóm hoặc công ty của bạn. Bạn có thể đổi tên sau trong phần cài đặt.",
+				"continue": "Continue",
+				"invite": {
+					"addAnother": "Add another",
+					"emailLabel": "Teammate email {{index}}",
+					"emailPlaceholder": "teammate@company.com",
+					"failed": "Couldn't invite {{email}}: {{message}}",
+					"invalidEmail": "Enter a valid email address",
+					"remove": "Remove email {{index}}",
+					"send": "Send invites",
+					"sending": "Sending...",
+					"sent_other": "{{count}} invitations sent",
+					"skip": "Skip for now",
+					"subtitle": "They'll get an email with a link to join {{name}}. You can invite more people later from Members.",
+					"title": "Invite your teammates"
+				},
+				"plan": {
+					"continueTrial": "Start free trial",
+					"continueWithoutPlan": "Continue to workspace",
+					"note": "You can pick or change a plan anytime in Settings, under Billing.",
+					"recommended": "Recommended",
+					"title": "Pick a plan",
+					"trialActive": "Your free trial runs until {{date}}. No card needed, and you can pick a plan anytime before then.",
+					"trialUsed": "You've already used your free trial. Pick a plan to start creating projects and tasks."
+				},
+				"usageLabel": "Who will use this workspace?",
+				"usageSolo": "Just me",
+				"usageSoloDescription": "Keep track of your own work",
+				"usageTeam": "My team",
+				"usageTeamDescription": "Plan and ship work together"
 			}
 		},
 		"profileSetup": {
@@ -360,9 +418,34 @@
 				"nameRequired": "Cần có tên",
 				"nameShort": "Tên phải có ít nhất 2 ký tự"
 			}
+		},
+		"passwordReset": {
+			"forgotPassword": "Forgot password?",
+			"requestTitle": "Reset your password",
+			"requestSubtitle": "Enter your email and we’ll send you a password reset link.",
+			"sendLink": "Send reset link",
+			"sending": "Sending…",
+			"sent": "If an account exists for this email, you’ll receive a password reset link. Check your inbox and spam folder.",
+			"requestError": "Could not request a reset link. Please try again.",
+			"unavailable": "Password reset is unavailable. Contact your instance administrator.",
+			"configError": "Could not reach the server. Please reload the page to try again.",
+			"resetTitle": "Choose a new password",
+			"resetSubtitle": "Use 8–128 characters for your new password.",
+			"newPassword": "New password",
+			"confirmPassword": "Confirm new password",
+			"passwordMismatch": "The passwords do not match.",
+			"passwordLength": "Use between 8 and 128 characters.",
+			"resetPassword": "Reset password",
+			"resetting": "Resetting…",
+			"invalidLink": "This reset link is invalid or has expired. Request a new link to continue.",
+			"requestNewLink": "Request a new link",
+			"resetError": "Could not reset your password. Please try again.",
+			"success": "Your password has been reset. Sign in with your new password.",
+			"backToSignIn": "Back to sign in"
 		}
 	},
 	"settings": {
+		"advancedSettings": "Cài đặt nâng cao",
 		"account": "Tài khoản",
 		"developer": "Nhà phát triển",
 		"information": "Thông tin",
@@ -511,7 +594,8 @@
 			"toastPreferencesSaved": "Đã lưu tùy chọn thông báo",
 			"toastPreferencesSaveFailed": "Không thể lưu tùy chọn thông báo",
 			"toastRuleSavedGeneric": "Đã lưu quy tắc thông báo không gian làm việc",
-			"toastRuleRemovedGeneric": "Đã gỡ quy tắc thông báo không gian làm việc"
+			"toastRuleRemovedGeneric": "Đã gỡ quy tắc thông báo không gian làm việc",
+			"recipientHint": "Bình luận và thay đổi trạng thái thông báo cho bạn về các công việc được giao cho bạn. Lượt nhắc thông báo cho thành viên được chọn. Bạn không nhận thông báo về bình luận, lượt nhắc và thay đổi trạng thái do chính mình thực hiện."
 		},
 		"preferencesPage": {
 			"title": "Tùy chọn",
@@ -552,7 +636,9 @@
 			"labels": "Nhãn",
 			"labelsDescription": "Hiển thị nhãn và thẻ của công việc",
 			"priority": "Mức ưu tiên",
-			"priorityDescription": "Hiển thị chỉ báo mức ưu tiên"
+			"priorityDescription": "Hiển thị chỉ báo mức ưu tiên",
+			"projectBackgrounds": "Project backgrounds",
+			"projectBackgroundsDescription": "Show project background images on boards"
 		},
 		"developerPage": {
 			"pageTitle": "Cài đặt nhà phát triển",
@@ -934,7 +1020,32 @@
 				"iconRequired": "Cần có biểu tượng"
 			},
 			"importExportTasks": "Nhập/Xuất",
-			"importExportTasksDescription": "Nhập và xuất công việc."
+			"importExportTasksDescription": "Nhập và xuất công việc.",
+			"backgroundHint": "Choose an image shown behind this project's board.",
+			"backgroundLabel": "Board background",
+			"backgroundRemove": "Remove image",
+			"backgroundRemoveError": "Failed to remove project background",
+			"backgroundRemoveSuccess": "Project background removed",
+			"backgroundReplace": "Replace image",
+			"backgroundUpload": "Upload image",
+			"backgroundUploadError": "Failed to update project background",
+			"backgroundUploadSuccess": "Project background updated",
+			"moveModalConfirm": "Chuyển dự án",
+			"moveModalDescription": "Thao tác này sẽ chuyển dự án \"{{name}}\" và tất cả công việc của nó sang \"{{workspace}}\". Những công việc được giao cho người không phải là thành viên của không gian làm việc đó sẽ bị hủy phân công, và các đăng ký thông báo cho dự án này sẽ bị xóa.",
+			"moveModalTitle": "Chuyển dự án?",
+			"moveProject": "Chuyển đến không gian làm việc",
+			"moveProjectAction": "Chuyển",
+			"moveProjectDescription": "Chuyển dự án này, cùng với tất cả công việc của nó, sang không gian làm việc khác.",
+			"moveProjectPlaceholder": "Chọn không gian làm việc",
+			"toastMoved": "Đã chuyển dự án thành công",
+			"toastMovedWithUnassigned": "Đã chuyển dự án thành công. {{taskCount}} công việc đã bị hủy phân công.",
+			"toastMoveError": "Không thể chuyển dự án",
+			"moveTargetsError": "Không thể kiểm tra những không gian làm việc mà bạn có thể chuyển dự án này đến. Hãy tải lại trang để thử lại.",
+			"noParent": "None (top-level project)",
+			"parentBlockedHint_other": "This project has {{count}} subprojects, so it can't be nested under another project.",
+			"parentError": "The parent project couldn't be changed.",
+			"parentHint": "Nest this project under another one. Only top-level projects can be parents.",
+			"parentLabel": "Parent project"
 		},
 		"projectIntegrations": {
 			"pageTitle": "Tích hợp dự án",
@@ -953,7 +1064,16 @@
 			"telegramSectionTitle": "Tích hợp Telegram",
 			"telegramSectionSubtitle": "Gửi cập nhật công việc dự án vào cuộc trò chuyện hoặc chủ đề Telegram bằng bot.",
 			"mattermostSectionSubtitle": "Send project task updates into a Mattermost channel with an incoming webhook.",
-			"mattermostSectionTitle": "Mattermost Integration"
+			"mattermostSectionTitle": "Mattermost Integration",
+			"gitlabSectionSubtitle": "Synchronize tasks with GitLab.com or a self-managed instance (issues, merge requests, webhooks).",
+			"gitlabSectionTitle": "GitLab Integration",
+			"codeHostingTitle": "Lưu trữ mã nguồn",
+			"chatTitle": "Trò chuyện & webhook",
+			"statusConnected": "Đã kết nối",
+			"statusPaused": "Đã tạm dừng",
+			"connect": "Kết nối",
+			"configure": "Cấu hình",
+			"done": "Xong"
 		},
 		"projectVisibility": {
 			"pageTitle": "Chế độ hiển thị dự án",
@@ -1371,7 +1491,9 @@
 				"pr_merged": "Gộp PR",
 				"issue_opened": "Mở issue",
 				"issue_closed": "Đóng issue"
-			}
+			},
+			"gitlabHeading": "GitLab",
+			"gitlabHint": "When a GitLab webhook event occurs, move the linked task to a column."
 		},
 		"externalLinks": {
 			"resources": "Tài nguyên",
@@ -1379,7 +1501,15 @@
 			"branch": "Nhánh",
 			"merged": "Đã gộp",
 			"draft": "Bản nháp",
-			"open": "Đang mở"
+			"open": "Đang mở",
+			"adding": "Adding...",
+			"addResource": "Add resource",
+			"cancel": "Cancel",
+			"empty": "No resources linked to this task.",
+			"titleOptional": "Title (optional)",
+			"url": "URL",
+			"remove": "Remove {{title}}",
+			"removeError": "Failed to remove the resource link."
 		},
 		"mattermostIntegration": {
 			"channelHint": "Optional label for your reference. Mattermost controls the actual destination channel from the webhook setup.",
@@ -1442,8 +1572,472 @@
 				"date": "Date",
 				"dropdown": "Dropdown",
 				"number": "Number",
-				"text": "Text"
+				"text": "Text",
+				"multiselect": "Multi-Select"
+			},
+			"availableOptions": "Available options",
+			"clearDefault": "Clear",
+			"defaultValues": "{{count}} default(s)",
+			"moreOptions": "+{{hiddenCount}} more",
+			"multiple": "Multiple",
+			"options": "{{count}} option(s)",
+			"reorderError": "Failed to reorder fields",
+			"selectPlaceholder": "Select option(s)"
+		},
+		"administration": "Administration",
+		"adminUsers": {
+			"actions": {
+				"deactivate": "Deactivate account",
+				"edit": "Edit account",
+				"open": "Actions for {{name}}",
+				"reactivate": "Reactivate account"
+			},
+			"clearSearch": "Clear search",
+			"columns": {
+				"actions": "Actions",
+				"joined": "Joined",
+				"role": "Global role",
+				"status": "Status",
+				"user": "User"
+			},
+			"confirm": {
+				"deactivate": {
+					"action": "Deactivate account",
+					"description": "{{name}} will be signed out and unable to sign in until an administrator reactivates the account.",
+					"title": "Deactivate this account?"
+				},
+				"delete": {
+					"action": "Delete permanently",
+					"description": "This permanently deletes {{name}}, their sessions, memberships, and associated data. This cannot be undone.",
+					"title": "Permanently delete this account?"
+				},
+				"reactivate": {
+					"action": "Reactivate account",
+					"description": "{{name}} will be able to sign in and access their workspaces again.",
+					"title": "Reactivate this account?"
+				},
+				"working": "Working…"
+			},
+			"directoryTitle": "User directory",
+			"edit": {
+				"description": "Update this account's identity and instance-wide access.",
+				"email": "Email address",
+				"name": "Full name",
+				"role": "Global role",
+				"save": "Save changes",
+				"saving": "Saving…",
+				"selfRoleHint": "You cannot change your own global role.",
+				"title": "Edit user"
+			},
+			"emptyDescription": "Try another name or email address.",
+			"emptyTitle": "No users found",
+			"instanceBadge": "Instance",
+			"loadError": "Users could not be loaded.",
+			"next": "Next",
+			"pagination": "Page {{current}} of {{total}}",
+			"previous": "Previous",
+			"refreshing": "Refreshing users",
+			"retry": "Retry",
+			"roles": {
+				"admin": "Instance admin",
+				"user": "User"
+			},
+			"searchCount_other": "{{count}} matching users",
+			"searchLabel": "Search users",
+			"searchPlaceholder": "Search name or email…",
+			"status": {
+				"active": "Active",
+				"deactivated": "Deactivated"
+			},
+			"subtitle": "Manage every account registered on this Kaneo instance.",
+			"title": "User management",
+			"toast": {
+				"actionError": "Failed to update user status",
+				"deactivated": "User deactivated",
+				"deleted": "User deleted",
+				"reactivated": "User reactivated",
+				"updated": "User updated",
+				"updateError": "Failed to update user"
+			},
+			"userCount_other": "{{count}} registered users",
+			"you": "(you)"
+		},
+		"security": "Security",
+		"securityPage": {
+			"confirmPassword": "Confirm new password",
+			"confirmPasswordPlaceholder": "Re-enter your new password",
+			"currentPassword": "Current password",
+			"currentPasswordPlaceholder": "Enter your current password",
+			"newPassword": "New password",
+			"newPasswordPlaceholder": "Enter a new password",
+			"noPassword": {
+				"description": "Your account signs in with a different method, so there is no password to change.",
+				"title": "Password change isn't available"
+			},
+			"pageTitle": "Security",
+			"sectionSubtitle": "Change the password you use to sign in.",
+			"sectionTitle": "Password",
+			"submit": "Update password",
+			"submitting": "Updating...",
+			"subtitle": "Manage your password and account security.",
+			"title": "Security",
+			"updateError": "Failed to update password.",
+			"updateSuccess": "Password updated.",
+			"validation": {
+				"confirmRequired": "Confirm your new password.",
+				"currentRequired": "Enter your current password.",
+				"mismatch": "Passwords do not match.",
+				"tooShort": "New password must be at least 8 characters.",
+				"sameAsCurrent": "New password must be different from your current password."
 			}
+		},
+		"gitlabIntegration": {
+			"actionsHint": "Verify access and connect",
+			"actionsTitle": "Actions",
+			"badgeConnected": "Connected",
+			"badgeNotConnected": "Not connected",
+			"baseUrlHint": "https://gitlab.com, or the root URL of your instance",
+			"baseUrlLabel": "GitLab URL",
+			"browse": "Browse",
+			"browseModalHint": "Projects your token is a member of",
+			"browseModalTitle": "Your projects",
+			"browseNeedsCredentials": "Enter GitLab URL and token to browse",
+			"commentTaskLinkHint": "When enabled, Kaneo comments with a link to the task on each issue opened in GitLab.",
+			"commentTaskLinkTitle": "Comment a Kaneo link on issues opened in GitLab",
+			"connect": "Connect",
+			"connectedActive": "Project connected and active",
+			"connectionStatus": "Connection status",
+			"currentToken": "stored",
+			"disconnect": "Disconnect",
+			"importDisabledHint": "Verify the project above to enable importing",
+			"importing": "Importing…",
+			"importIssues": "Import issues",
+			"importSectionHint": "Import open issues and merge requests from the project",
+			"importSectionTitle": "Import GitLab issues",
+			"loadingProjects": "Loading projects…",
+			"notConnectedHint": "No GitLab project connected",
+			"openInGitlab": "Open {{project}} in GitLab",
+			"project": "Project",
+			"projectHint": "Linked GitLab project",
+			"projectPathHint": "Full path including any groups, e.g. group/subgroup/project",
+			"projectPathLabel": "Project path",
+			"retry": "Retry",
+			"searchProjects": "Search…",
+			"toast": {
+				"commentOnDisabled": "Task link comments on issues opened in GitLab are turned off",
+				"commentOnEnabled": "Kaneo will comment with a task link on issues opened in GitLab",
+				"importError": "Failed to import issues",
+				"issuesImported": "Issues imported successfully",
+				"notGitlabInstance": "The URL does not point to a GitLab instance",
+				"projectNotFound": "Project not found or not accessible",
+				"redirected": "GitLab URL redirected (usually to HTTPS). Use the final URL directly.",
+				"removed": "GitLab integration removed",
+				"removeError": "Failed to remove GitLab integration",
+				"secretCopied": "Copied",
+				"settingsUpdateError": "Failed to update GitLab integration",
+				"tokenRequired": "Access token is required",
+				"tokenRequiredVerify": "Enter a token to verify",
+				"unableToCopySecret": "Unable to copy secret",
+				"updated": "GitLab integration saved",
+				"updateError": "Failed to save GitLab integration",
+				"verifyError": "Failed to verify GitLab access",
+				"verifyFirst": "Verify access failed. Check URL, token, and project path",
+				"verifyOk": "GitLab token can access this project",
+				"verifyWarning": "Check token permissions or project access"
+			},
+			"tokenHint": "Token with api scope and at least Developer on the project",
+			"tokenLabel": "Access token",
+			"tokenPlaceholder": "Paste token",
+			"tokenPlaceholderUpdate": "Paste new token to rotate",
+			"tokenTypeBearer": "OAuth2 token",
+			"tokenTypeHint": "How the token is sent. Access tokens use PRIVATE-TOKEN; an OAuth2 token uses Authorization.",
+			"tokenTypeLabel": "Token type",
+			"tokenTypePrivate": "Personal, project or group access token",
+			"update": "Update",
+			"validation": {
+				"baseUrlInvalid": "Enter a valid URL (e.g. https://gitlab.com)",
+				"baseUrlRequired": "GitLab base URL is required",
+				"pathInvalid": "Enter the full path, e.g. group/project",
+				"pathRequired": "Project path is required"
+			},
+			"verify": "Verify",
+			"webhookCopy": "Copy",
+			"webhookHide": "Hide",
+			"webhookHint": "In your GitLab project, add a webhook with this URL and secret token. Enable push, issues, comments, and merge request events.",
+			"webhookSecretLabel": "Secret token (must match the one set on the webhook in GitLab)",
+			"webhookShow": "Show",
+			"webhookTitle": "Webhook",
+			"loadProjectsError": "Failed to load projects",
+			"importPermissionHint": "Importing requires permission to create and update tasks."
+		},
+		"calendarFeeds": {
+			"title": "Calendar feeds",
+			"subtitle": "Subscribe to scheduled project tasks in your calendar app.",
+			"createTitle": "Create a calendar feed",
+			"filterHint": "Include tasks with a start or due date and at least one of the selected labels.",
+			"labels": "Labels",
+			"selectLabels": "Search and select labels…",
+			"noLabels": "No labels found.",
+			"timeZoneHint": "All-day dates use {{timeZone}}.",
+			"accessHint": "Anyone with a feed link can read the matching task titles, descriptions, and dates. Revoke a link to stop future access.",
+			"create": "Create feed",
+			"creating": "Creating…",
+			"created": "Calendar feed created.",
+			"createError": "Could not create the calendar feed.",
+			"activeFeeds": "Active feeds",
+			"subscribeHint": "Copy a link and add it as a calendar subscription. Updates appear when your calendar app refreshes the feed.",
+			"empty": "No calendar feeds yet.",
+			"feedUrl": "Calendar feed URL",
+			"copy": "Copy link",
+			"copied": "Calendar feed link copied.",
+			"copyError": "Could not copy the link. Select the URL and copy it manually.",
+			"revoke": "Revoke",
+			"revoked": "Calendar feed revoked.",
+			"revokeError": "Could not revoke the calendar feed.",
+			"loadError": "Could not load calendar feeds or labels. Please try again.",
+			"deletedLabel": "Deleted label",
+			"permissionRequired": "You need project-sharing permission to manage calendar feeds."
+		},
+		"invitationEmailFailed": "Invitation saved, but email delivery failed. Check SMTP settings and resend the invitation.",
+		"billing": {
+			"accessEnds": "Access ends",
+			"adminsOnly": "Only workspace owners and admins can manage billing.",
+			"choose": "Choose {{plan}}",
+			"choosePlan": {
+				"subtitle": "Switch anytime. Cancel whenever you like.",
+				"title": "Choose a plan"
+			},
+			"currentPlan": {
+				"subtitle": "Your workspace's active plan and billing status.",
+				"title": "Current plan"
+			},
+			"disabled": "Billing isn't enabled on this instance. Self-hosted Kaneo includes every feature, free forever.",
+			"expiredCallout": {
+				"action": "Choose a plan",
+				"adminDescription": "You can still view everything, but creating and editing are paused until you choose a plan. Nothing has been deleted.",
+				"memberDescription": "You can still view everything, but creating and editing are paused until a workspace owner or admin chooses a plan.",
+				"title": "Your free trial has ended"
+			},
+			"features": {
+				"backups": "Automatic backups and updates",
+				"emailSupport": "Email support",
+				"prioritySupport": "Priority email support",
+				"roles": "Workspace roles and permissions",
+				"singleUser": "Single user",
+				"unlimitedMembers": "Unlimited team members",
+				"unlimitedProjects": "Unlimited projects and tasks"
+			},
+			"foundingFree": {
+				"badge": "Free",
+				"description": "This workspace has free access to Kaneo Cloud as an early supporter. Thank you for being here from the start.",
+				"title": "Founding Free"
+			},
+			"interval": {
+				"annual": "Annual",
+				"annualBadge": "2 months free",
+				"monthly": "Monthly"
+			},
+			"manage": "Manage billing",
+			"mostPopular": "Most popular",
+			"opening": "Opening...",
+			"pageTitle": "Billing",
+			"planName": "Kaneo Cloud {{plan}}",
+			"plans": {
+				"personal": {
+					"name": "Personal",
+					"tagline": "For individuals"
+				},
+				"team": {
+					"name": "Team",
+					"tagline": "For teams working together"
+				}
+			},
+			"portalHint": "Update payment method, view invoices, or cancel anytime.",
+			"price": {
+				"billedMonthly": "Billed monthly",
+				"billedYearly": "{{price}} / month, billed yearly",
+				"billedYearlyPerUser": "{{price}} / user / month, billed yearly",
+				"perMonth": "/ month",
+				"perUserMonth": "/ user / month",
+				"perUserYear": "/ user / year",
+				"perYear": "/ year"
+			},
+			"processedBy": "Payments are securely processed by Creem. Prices exclude tax where applicable.",
+			"renews": "Renews",
+			"seats_other": "{{count}} seats",
+			"starting": "Starting...",
+			"status": {
+				"active": "Active",
+				"canceled": "Canceled",
+				"expired": "Expired",
+				"past_due": "Payment past due",
+				"paused": "Paused",
+				"scheduled_cancel": "Cancels soon",
+				"trialing": "Trial"
+			},
+			"subtitle": "Manage the Kaneo Cloud subscription for this workspace.",
+			"trial": {
+				"activeTitle": "Free trial",
+				"daysLeft_other": "You have {{count}} days left on your free trial. Choose a plan to continue without interruption.",
+				"expiredDescription": "Subscribe to a plan below to keep creating and editing. Your data stays safe and exportable in the meantime.",
+				"expiredTitle": "Your trial has ended",
+				"noDate": "Choose a plan below to continue after your trial."
+			},
+			"trialCard": {
+				"activeDescription": "Upgrade anytime to keep your workspace after the trial.",
+				"choosePlan": "Choose a plan",
+				"daysLeft_other": "{{count}} days left in trial",
+				"dismiss": "Dismiss",
+				"ended": "Trial ended",
+				"endingDescription": "Pick a plan now so your team isn't interrupted.",
+				"expiredDescription": "Subscribe to keep creating and editing.",
+				"viewPlans": "View plans"
+			},
+			"openFailed": "Couldn't open billing for this workspace"
+		},
+		"syncRules": {
+			"addLabel": "Add label",
+			"advancedHint": "Enable Advanced settings in Preferences to edit these rules.",
+			"all": "All tasks and issues",
+			"allSummary": "All of: {{labels}}",
+			"any": "Any selected label",
+			"anySummary": "Any of: {{labels}}",
+			"apply": "Apply sync rules",
+			"closed": "Closed",
+			"every": "All selected labels",
+			"excluded": "Outside the current rule",
+			"filtered": "Only matching labels",
+			"filteredBadge": "Filtered by labels",
+			"impact": "{{matching}} of {{total}} tasks match. {{create}} tasks will be exported, {{pause}} links will pause, and {{review}} links need review to resume.",
+			"impactTitle": "What will change",
+			"incoming": "Repository → Kaneo",
+			"incomingHint": "Choose which issues can be imported or create tasks. Use exact repository label names. Existing links follow the Kaneo task rule.",
+			"loadError": "Sync rules could not be loaded.",
+			"loading": "Loading sync rules…",
+			"matchLabels": "Label matching",
+			"missingLabels": "A selected workspace label is unavailable. Sync stays paused until the rule is repaired.",
+			"removeMissingLabels": "Xóa nhãn không khả dụng",
+			"next": "Next",
+			"noDescription": "No description",
+			"noLabels": "Create workspace labels before configuring a task filter.",
+			"open": "Open",
+			"outgoing": "Kaneo → repository",
+			"outgoingHint": "Choose which Kaneo tasks can sync. Losing a matching label pauses both directions for an existing task.",
+			"paused": "Sync paused",
+			"pausedCount_other": "{{count}} paused links",
+			"pausedHint": "Records and links are preserved. Tasks that match again need review before syncing resumes.",
+			"preserveHint": "Pausing keeps both records and their link. Resuming requires a comparison; historical comments are never replayed.",
+			"previewing": "Checking sync impact…",
+			"previous": "Previous",
+			"refreshComparison": "Refresh comparison",
+			"refreshPreview": "Refresh preview",
+			"removeLabel": "Remove {{name}}",
+			"repository": "Repository",
+			"repositoryLabel": "Repository label name",
+			"resumeError": "Could not resume. The task, issue or rule may have changed, or the provider is unavailable. Sync remains paused; refresh the comparison.",
+			"review": "Review and resume",
+			"reviewHint": "Compare the current title, description and open/closed state. Choose which side to keep for these fields. Labels and historical comments remain unchanged.",
+			"reviewRequired": "Matches the rule · review required",
+			"reviewTitle": "Review before resuming sync",
+			"saved": "Sync rules saved",
+			"saveError": "Could not apply these rules. The integration or task scope may have changed. Refresh the preview and try again.",
+			"selectLabel": "Select at least one label to preview this rule.",
+			"sharedHint": "These rules apply to everyone using this project. Hiding advanced settings does not disable them.",
+			"title": "Sync scope",
+			"unavailableLabel": "Unavailable label",
+			"useKaneo": "Keep Kaneo values",
+			"useRepository": "Keep repository values",
+			"exportPending": "Export matching tasks",
+			"inactiveHint": "This integration is paused. No tasks will be exported until it is reactivated.",
+			"loadSavedRules": "Load saved rules",
+			"rulesChanged": "The saved rules changed while you were editing. Your draft is preserved. Review the current rules above before applying it, or load the saved rules."
+		},
+		"advancedSettingsDescription": "A personal display preference for this browser across all your workspaces.",
+		"adminWorkspaces": {
+			"addMember": {
+				"adding": "Adding…",
+				"alreadyMember": "Already a member",
+				"description": "Add an existing user to {{name}}. They can access every project until you limit them.",
+				"noUsers": "No users found",
+				"role": "Role",
+				"searching": "Searching users…",
+				"submit": "Add member",
+				"title": "Add member",
+				"user": "User",
+				"userPlaceholder": "Search name or email…",
+				"usersError": "Users could not be loaded."
+			},
+			"clearSearch": "Clear search",
+			"columns": {
+				"actions": "Actions",
+				"created": "Created",
+				"members": "Members",
+				"owners": "Owners",
+				"projects": "Projects",
+				"workspace": "Workspace"
+			},
+			"confirm": {
+				"remove": {
+					"action": "Remove member",
+					"description": "{{name}} loses access to {{workspace}} and its projects. Their account stays on this instance.",
+					"title": "Remove {{name}}?"
+				},
+				"transfer": {
+					"action": "Make owner",
+					"description": "{{name}} becomes the only owner of {{workspace}}. Anyone who owns it now becomes an admin.",
+					"title": "Make {{name}} the owner?"
+				},
+				"working": "Working…"
+			},
+			"directoryTitle": "Workspace directory",
+			"emptyDescription": "Try another name or slug.",
+			"emptyTitle": "No workspaces found",
+			"instanceBadge": "Instance",
+			"loadError": "Workspaces could not be loaded.",
+			"manage": "Manage",
+			"manageLabel": "Manage {{name}}",
+			"members": {
+				"actions": "Actions for {{name}}",
+				"add": "Add member",
+				"columns": {
+					"actions": "Actions",
+					"joined": "Joined",
+					"member": "Member",
+					"projects": "Projects",
+					"role": "Role"
+				},
+				"count_other": "{{count}} members",
+				"description": "Change roles, project access, and ownership, even if you aren't a member of this workspace.",
+				"editAccess": "Change project access for {{name}} ({{access}})",
+				"empty": "This workspace has no members.",
+				"loadError": "Members could not be loaded.",
+				"makeOwner": "Make owner",
+				"remove": "Remove from workspace",
+				"roleLabel": "Role for {{name}}",
+				"title": "Members of {{name}}"
+			},
+			"next": "Next",
+			"noOwner": "No owner",
+			"pagination": "Page {{current}} of {{total}}",
+			"previous": "Previous",
+			"refreshing": "Refreshing workspaces",
+			"retry": "Retry",
+			"searchCount_other": "{{count}} matching workspaces",
+			"searchLabel": "Search workspaces",
+			"searchPlaceholder": "Search name or slug…",
+			"subtitle": "Manage every workspace on this Kaneo instance, including ones you don't belong to.",
+			"title": "Workspace management",
+			"toast": {
+				"added": "Member added",
+				"addError": "Failed to add member",
+				"ownershipTransferred": "Ownership transferred",
+				"removed": "Member removed",
+				"removeError": "Failed to remove member",
+				"roleError": "Failed to update role",
+				"roleUpdated": "Role updated",
+				"transferError": "Failed to transfer ownership"
+			},
+			"workspaceCount_other": "{{count}} workspaces"
 		}
 	},
 	"navigation": {
@@ -1468,14 +2062,16 @@
 				"close": "Đóng"
 			}
 		},
-		"notifications": "Thông báo",
 		"sidebar": {
-			"overview": "Tổng quan",
 			"projects": "Dự án",
 			"members": "Thành viên",
 			"invitations": "Lời mời",
 			"more": "Thêm",
-			"backToBoard": "Quay lại bảng"
+			"backToBoard": "Quay lại bảng",
+			"home": "Home",
+			"inbox": "Inbox",
+			"invitePeople": "Invite people",
+			"myTasks": "My tasks"
 		},
 		"projectList": {
 			"viewProject": "Xem dự án",
@@ -1488,7 +2084,8 @@
 			"deletedToast": "Đã xóa dự án",
 			"deleteProject": "Xóa dự án",
 			"duplicateProject": "Duplicate project",
-			"saveAsTemplate": "Save as template"
+			"saveAsTemplate": "Save as template",
+			"addSubproject": "Add subproject"
 		},
 		"search": {
 			"inputPlaceholder": "Tìm công việc, dự án, bình luận...",
@@ -1557,21 +2154,22 @@
 				"prevTask": "Công việc trước đó",
 				"openTask": "Mở công việc đã chọn",
 				"quickSelectNumber": "Chọn tùy chọn theo số",
-				"calendarView": "Switch to calendar view"
+				"calendarView": "Chuyển sang chế độ xem lịch"
 			}
+		},
+		"projectFamily": {
+			"label": "Project hierarchy",
+			"parent": "Part of {{name}}",
+			"subprojects": "Subprojects"
 		}
 	},
 	"notifications": {
-		"title": "Thông báo",
 		"newCount_other": "{{count}} mới",
 		"emptyTitle": "Chưa có thông báo nào",
 		"emptySubtitle": "Bạn sẽ thấy các cập nhật và hoạt động ở đây.",
 		"clearAll": "Xóa tất cả thông báo",
 		"clearDialogTitle": "Xóa tất cả thông báo?",
 		"clearDialogDescription": "Thao tác này sẽ xóa vĩnh viễn tất cả thông báo. Bạn không thể hoàn tác hành động này.",
-		"shortcuts": {
-			"open": "Mở thông báo"
-		},
 		"reminderLeadTime": {
 			"minutes_other": "{{count}} phút",
 			"hours_other": "{{count}} giờ",
@@ -1615,6 +2213,26 @@
 				"contentWithTask": "Đã bắt đầu theo dõi thời gian trên công việc: {{taskTitle}}",
 				"contentWithoutTask": "Đã bắt đầu theo dõi thời gian trên một công việc"
 			}
+		},
+		"inbox": {
+			"back": "Inbox",
+			"earlier": "Earlier",
+			"emptyFilter": "Nothing here",
+			"filters": {
+				"all": "All",
+				"label": "Filter notifications",
+				"mentions": "Mentions",
+				"unread": "Unread"
+			},
+			"openTask": "Open task",
+			"pageTitle": "Inbox",
+			"recentActivity": "Recent activity",
+			"selectPrompt": "Select a notification to read it",
+			"taskUnavailable": "This task is no longer available.",
+			"today": "Today",
+			"unread": "Unread",
+			"loadError": "Notifications couldn't be loaded.",
+			"taskLoadError": "This task couldn’t be loaded."
 		}
 	},
 	"activity": {
@@ -1631,9 +2249,7 @@
 		"created": "đã tạo công việc này",
 		"githubUser": "Người dùng GitHub",
 		"comment": {
-			"github": "GitHub",
 			"viewGithubProfile": "Xem hồ sơ GitHub",
-			"commentedOnGithub": "đã bình luận trên GitHub",
 			"cannotBeEmpty": "Bình luận không được để trống",
 			"mustBeLoggedInToEdit": "Bạn phải đăng nhập để chỉnh sửa bình luận",
 			"updated": "Đã cập nhật bình luận",
@@ -1729,8 +2345,10 @@
 				}
 			},
 			"importedFrom": "Imported from {{source}}",
-			"importedBy": "Imported by {{name}}"
-		}
+			"importedBy": "Imported by {{name}}",
+			"commentedOnForge": "đã bình luận trên {{forge}}"
+		},
+		"movedFromOtherProject": "moved task from another project to \"{{to}}\""
 	},
 	"tasks": {
 		"title": "Nhiệm vụ",
@@ -1761,6 +2379,9 @@
 			"loadingTask": "Đang tải công việc...",
 			"taskNotFound": "Không tìm thấy công việc",
 			"taskNotFoundDescription": "Công việc bạn đang tìm không tồn tại hoặc đã bị xóa.",
+			"ticketAmbiguous": "Mã công việc khớp với nhiều công việc",
+			"ticketAmbiguousDescription": "{{ticketId}} khớp với công việc trong nhiều dự án của không gian làm việc này. Hãy đặt khóa khác cho một trong các dự án đó để liên kết hoạt động.",
+			"ticketNotFoundDescription": "Không có công việc nào có mã {{ticketId}} trong không gian làm việc này, hoặc bạn không có quyền truy cập.",
 			"customFields": "Custom Fields"
 		},
 		"detail": {
@@ -1866,7 +2487,18 @@
 				},
 				"mermaid": {
 					"renderFailed": "Mermaid diagram couldn't be rendered"
-				}
+				},
+				"image": {
+					"large": "Large",
+					"medium": "Medium",
+					"reset": "Reset size",
+					"resizeHandle": "Resize image",
+					"small": "Small"
+				},
+				"saved": "Saved",
+				"saving": "Saving…",
+				"saveFailed": "Changes could not be saved",
+				"retrySave": "Retry"
 			},
 			"customFieldUpdated": "Field updated",
 			"selectOption": "Select option"
@@ -1903,13 +2535,17 @@
 			"deleteDialogTitle": "Xóa công việc?",
 			"deleteDialogDescription": "Thao tác này sẽ xóa vĩnh viễn công việc và toàn bộ dữ liệu của nó. Bạn không thể hoàn tác hành động này.",
 			"deleteAction": "Xóa công việc",
-			"completeAria": "Đánh dấu hoàn thành công việc con"
+			"completeAria": "Đánh dấu hoàn thành công việc con",
+			"progress": "Đã hoàn thành {{completed}} trên {{total}} công việc con",
+			"noCompletionColumn": "This project has no matching column for completing or reopening this subtask."
 		},
 		"properties": {
 			"title": "Thuộc tính",
 			"labels": "Nhãn",
 			"copyTaskLink": "Sao chép liên kết công việc",
 			"copyTaskBranch": "Sao chép nhánh công việc",
+			"taskLinkCopied": "Đã sao chép liên kết công việc",
+			"taskBranchCopied": "Đã sao chép tên nhánh",
 			"start": "Bắt đầu",
 			"startDate": "Ngày bắt đầu",
 			"noDate": "Không có ngày"
@@ -2062,6 +2698,11 @@
 			"success": "Xóa công việc thành công",
 			"error": "Không thể xóa công việc"
 		},
+		"duplicate": {
+			"titleSuffix": "{{title}} (bản sao)",
+			"success": "Nhân bản công việc thành công",
+			"error": "Không thể nhân bản công việc"
+		},
 		"archive": {
 			"success": "Đã lưu trữ {{count}} công việc"
 		},
@@ -2071,7 +2712,8 @@
 			"noTasks": "Không có công việc"
 		},
 		"kanban": {
-			"addTask": "Thêm công việc"
+			"addTask": "Thêm công việc",
+			"automaticallySortedHint": "Tự động sắp xếp theo {{sort}}"
 		},
 		"pr": {
 			"merged": "Đã gộp",
@@ -2105,6 +2747,7 @@
 			"copyLinkSuccess": "Đã sao chép liên kết công việc!"
 		},
 		"actions": {
+			"duplicate": "Nhân bản",
 			"archive": "Lưu trữ",
 			"markAsPlanned": "Đánh dấu đã lên kế hoạch",
 			"delete": "Xóa..."
@@ -2153,23 +2796,33 @@
 			}
 		},
 		"calendar": {
-			"dayTasksAriaLabel": "Show all tasks for {{date}}",
-			"moreTasks": "+{{count}} more",
-			"nextMonth": "Next month",
-			"noTasks": "No scheduled tasks",
-			"noTasksSubtitle": "Add a start date, due date, or both to tasks to place them on the calendar.",
-			"pageTitle": "{{name}} – Calendar",
-			"previousMonth": "Previous month",
-			"taskAriaLabel": "{{title}}, {{range}}: open task",
-			"title": "Calendar",
-			"today": "Today",
-			"loadError": "Failed to load tasks."
+			"dayTasksAriaLabel": "Hiện tất cả công việc cho ngày {{date}}",
+			"moreTasks": "+{{count}} công việc khác",
+			"nextMonth": "Tháng sau",
+			"noTasks": "Không có công việc đã lên lịch",
+			"noTasksSubtitle": "Thêm ngày bắt đầu, ngày đến hạn hoặc cả hai cho công việc để hiển thị chúng trên lịch.",
+			"pageTitle": "{{name}} – Lịch",
+			"previousMonth": "Tháng trước",
+			"taskAriaLabel": "{{title}}, {{range}}: mở công việc",
+			"title": "Lịch",
+			"today": "Hôm nay",
+			"loadError": "Không thể tải công việc."
 		},
 		"descriptionSearchLoading": "Searching full descriptions…",
 		"descriptionSearchError": "Description search failed. Results may be incomplete.",
 		"descriptionRetry": "Retry",
 		"descriptionLoading": "Loading description…",
-		"descriptionLoadError": "The description could not be loaded. Retry to load the current version."
+		"descriptionLoadError": "The description could not be loaded. Retry to load the current version.",
+		"checklistProgress": "Đã hoàn thành {{completed}} trên {{total}} mục trong danh sách kiểm tra",
+		"customFields": {
+			"ariaLabel": "Custom fields"
+		},
+		"board": {
+			"reorderFailed": "Could not move task. Please try again."
+		},
+		"dashboard": {
+			"title": "Dashboard"
+		}
 	},
 	"invitations": {
 		"email": {
@@ -2220,7 +2873,14 @@
 			},
 			"noDueDate": "Không có ngày đến hạn",
 			"reorderHandle": "Sắp xếp lại dự án",
-			"reorderError": "Không thể sắp xếp lại dự án"
+			"reorderError": "Không thể sắp xếp lại dự án",
+			"unavailable": {
+				"backToWorkspace": "Back to workspace",
+				"noAccessDescription": "Ask a workspace admin to give you access.",
+				"noAccessTitle": "You don't have access to this project",
+				"notFoundDescription": "This project doesn't exist or has been deleted.",
+				"notFoundTitle": "Project not found"
+			}
 		},
 		"search": {
 			"pageTitle": "Tìm kiếm",
@@ -2253,6 +2913,95 @@
 			"submit": "Tạo không gian làm việc",
 			"success": "Tạo không gian làm việc thành công",
 			"error": "Không thể tạo không gian làm việc"
+		},
+		"home": {
+			"activity": {
+				"commented": "commented",
+				"empty": "Nothing has happened in the last 30 days.",
+				"loadError": "Activity couldn't be loaded.",
+				"title": "Activity",
+				"updated": "updated the task"
+			},
+			"greeting": {
+				"afternoon": "Good afternoon",
+				"evening": "Good evening",
+				"morning": "Good morning"
+			},
+			"newTask": "New task",
+			"pageTitle": "Home",
+			"projects": {
+				"all": "All projects",
+				"tasks_other": "{{count}} tasks",
+				"title": "Your projects",
+				"loadError": "Projects couldn't be loaded."
+			},
+			"upNext": {
+				"assigned_other": "{{count}} assigned to you",
+				"title": "Up next",
+				"viewAll": "View all"
+			},
+			"week": {
+				"more_other": "+{{count}} more",
+				"truncated": "The week preview includes only the first {{shown}} of {{total}} assigned tasks."
+			}
+		},
+		"myTasks": {
+			"emptyDescription": "Tasks assigned to you across this workspace show up here.",
+			"groupBy": {
+				"dueDate": "Due date",
+				"label": "Group by",
+				"project": "Project"
+			},
+			"pageTitle": "My tasks",
+			"truncated": "Showing the first {{shown}} of {{total}} tasks."
+		},
+		"myWork": {
+			"due": {
+				"later": "Later",
+				"noDueDate": "No due date",
+				"overdue": "Overdue",
+				"thisWeek": "This week",
+				"today": "Today",
+				"tomorrow": "Tomorrow"
+			},
+			"empty": "Nothing assigned to you",
+			"loadError": "Your tasks couldn't be loaded."
+		},
+		"projectDashboard": {
+			"aggregateNote_other": "Totals include this project and {{count}} subprojects.",
+			"health": {
+				"at_risk": "At risk",
+				"complete": "Complete",
+				"late": "Late",
+				"not_started": "No tasks yet",
+				"on_track": "On track"
+			},
+			"loadError": "The dashboard couldn't be loaded.",
+			"parentOf": "Part of {{name}}",
+			"stats": {
+				"done": "Tasks done",
+				"dueSoon_other": "{{count}} due this week",
+				"hours": "Hours worked",
+				"ofTotal_other": "of {{count}} tasks",
+				"overdue": "Overdue",
+				"progress": "Progress",
+				"remaining": "Tasks remaining"
+			},
+			"subprojects": {
+				"count_other": "{{count}} subprojects",
+				"tasksDone": "{{done}}/{{total}} tasks",
+				"thisProject": "This project only",
+				"title": "Subprojects"
+			}
+		},
+		"projectStatus": {
+			"chiuso": "Closed",
+			"hint": "Set by hand. Separate from the automatic health indicator.",
+			"in_attesa_cliente": "Waiting for client",
+			"in_corso": "In progress",
+			"in_pausa": "On hold",
+			"label": "Project status",
+			"updateError": "The project status couldn't be updated."
 		}
 	},
 	"team": {
@@ -2293,7 +3042,8 @@
 				"name": "Tên",
 				"role": "Vai trò",
 				"joined": "Ngày tham gia",
-				"actions": "Hành động"
+				"actions": "Hành động",
+				"projects": "Projects"
 			},
 			"memberRolePending": "{{role}} (Đang chờ)",
 			"ariaCancelInvitation": "Hủy lời mời",
@@ -2311,6 +3061,26 @@
 			"cancelInviteError": "Không thể hủy lời mời",
 			"roleUpdateSuccess": "Đã cập nhật vai trò",
 			"roleUpdateError": "Không thể cập nhật vai trò"
+		},
+		"projectAccess": {
+			"allProjects": "All projects",
+			"allProjectsDescription": "Access every project in this workspace, including new ones.",
+			"description": "Choose which projects this person can see.",
+			"dialogDescription": "Choose which projects {{name}} can access.",
+			"dialogTitle": "Project access",
+			"editAria": "Change project access for {{name}} ({{access}})",
+			"label": "Project access",
+			"noProjects": "No projects in this workspace yet.",
+			"projectCount_other": "{{count}} projects",
+			"projectsLabel": "Projects",
+			"save": "Save",
+			"selectAtLeastOne": "Choose at least one project.",
+			"selectedProjects": "Selected projects",
+			"selectedProjectsDescription": "Only access the projects you choose.",
+			"updateError": "Failed to update project access",
+			"updateSuccess": "Project access updated",
+			"archived": "Archived",
+			"allProjectsUnavailable": "Your own access is limited, so you can only give access to selected projects."
 		}
 	},
 	"publicProject": {
@@ -2393,6 +3163,9 @@
 		"lightTimelineScreenshotAlt": "Kaneo Gantt timeline in light theme, showing scheduled tasks and their durations"
 	},
 	"landing": {
+		"sponsors": {
+			"ciSponsor": "Đối tác"
+		},
 		"founder": {
 			"title": "Why Kaneo exists",
 			"intro": "I'm Andrej, and I created Kaneo because I was tired of project management tools that got in the way more than they helped. After years of using bloated, overcomplicated platforms that distracted from actual work, I knew there had to be a better way.",
@@ -2404,7 +3177,10 @@
 			"selfHostCta": "Self-host Kaneo",
 			"trialNote": "14-day cloud trial. No credit card required.",
 			"github": "GitHub",
-			"productHunt": "Product Hunt"
+			"productHunt": "Product Hunt",
+			"title": "Project management",
+			"titleAccent": "that doesn't become the project.",
+			"description": "Open-source project management with boards, Gantt charts, and GitHub integration. Self-host for free with SSO included, or let Kaneo Cloud handle the hosting."
 		},
 		"navigation": {
 			"product": "Product",
@@ -2415,6 +3191,7 @@
 			"guides": "Guides",
 			"comparisons": "Compare tools",
 			"roadmap": "Roadmap",
+			"community": "Cộng đồng",
 			"menu": "Menu",
 			"closeMenu": "Close menu",
 			"home": "Kaneo home",
@@ -2484,6 +3261,74 @@
 				"title": "See what’s holding things up.",
 				"description": "Connect blockers, follow dependencies, and keep related work close. Open a linked task to see the context behind the next step."
 			}
+		},
+		"seo": {
+			"title": "Kaneo — Open-source, self-hosted project management",
+			"description": "Open-source project management with boards, Gantt charts, and GitHub integration. Self-host for free with SSO included, or use Kaneo Cloud."
+		},
+		"resources": {
+			"eyebrow": "Make it your own",
+			"title": "A clear path from trying it to using it.",
+			"description": "Set up your server, connect your tools, or compare Kaneo with your current tracker.",
+			"docker": {
+				"title": "Self-host with Docker",
+				"description": "Installation, backups, and updates for a setup you control."
+			},
+			"sso": {
+				"title": "Bring your own identity provider",
+				"description": "Configure OIDC single sign-on in the free self-hosted build."
+			},
+			"mcp": {
+				"title": "Connect your AI tools",
+				"description": "Use MCP to work with tasks and projects through an AI client."
+			},
+			"linear": {
+				"title": "Compare Kaneo and Linear",
+				"description": "See the differences in hosting, licensing, and workflow."
+			}
+		},
+		"product": {
+			"title": "Before you get started",
+			"description": "The practical details about hosting, planning, and connecting your team.",
+			"overview": "Kaneo is an open-source, MIT-licensed project management platform with boards, backlog, Gantt and calendar views, custom fields, time tracking, and GitHub integration. Self-host it on your own infrastructure or use Kaneo Cloud.",
+			"hosting": {
+				"question": "Is Kaneo free to self-host?",
+				"answer": "Yes. Kaneo is MIT licensed and free to self-host, with single sign-on included. Run the application alongside PostgreSQL using Docker Compose, or deploy with the official Helm chart. You manage infrastructure, updates, and backups.",
+				"link": "Read the installation guide"
+			},
+			"planning": {
+				"question": "Does Kaneo have Gantt charts?",
+				"answer": "Yes. Kaneo includes Gantt and calendar views alongside boards, lists, and backlog planning. Use task start dates and due dates to plan work on a timeline. Budgeting, baseline comparisons, and sprint burndown reports are outside its current scope.",
+				"link": "Compare planning features"
+			},
+			"sso": {
+				"question": "Is single sign-on included?",
+				"answer": "Yes. The free self-hosted build supports Google, GitHub, Discord, and custom OAuth/OIDC providers. Configure your provider on your instance without purchasing a separate Kaneo edition.",
+				"link": "Configure OIDC"
+			},
+			"agents": {
+				"question": "Can AI clients work with Kaneo?",
+				"answer": "Yes. Kaneo provides an MCP server through the @kaneo/mcp package and an HTTP endpoint. Compatible AI clients can read and update tasks using an API key tied to a user, subject to workspace permissions.",
+				"link": "Read the MCP guide"
+			}
+		},
+		"comparison": {
+			"feature": "Feature",
+			"yes": "Yes",
+			"no": "No"
+		},
+		"selfHostingGuide": {
+			"summary": "What self-hosting involves, with links to the maintained Docker Compose configuration and installation steps.",
+			"answer": "To self-host Kaneo, run the application and PostgreSQL with Docker Compose, configure your public URL and secrets, and put a TLS reverse proxy in front. The installation guide specifies at least 2 GB of RAM and 10 GB of disk space. Plan for ongoing updates, database backups, and storage for uploaded files.",
+			"requirements": "The documented minimum is 2 GB of RAM and 10 GB of disk space, with Docker 20.10 or newer and Docker Compose V2. Allow more capacity for your workload, database growth, and uploaded files.",
+			"compose": "Use the maintained compose.yml in the Docker Compose guide. It defines PostgreSQL, a persistent database volume, the Kaneo application, and health checks. Configure the environment file before starting the services; for production, pin an image version so updates are deliberate.",
+			"backups": "Back up both PostgreSQL and any object storage used for uploads. Choose a schedule based on how much work your team can afford to lose, store copies off the application server, and test restoring them before you need them.",
+			"worth": "Self-hosting makes sense when you need control over infrastructure and data, and someone can own maintenance. Include server capacity, storage, backups, and that maintenance time when comparing costs with a managed service.",
+			"minimum": "The installation guide specifies Docker 20.10 or newer, Docker Compose V2, at least 2 GB of RAM, and 10 GB of disk space. The Compose setup includes PostgreSQL. Redis is optional for a single API instance.",
+			"composeLink": "Docker Compose configuration",
+			"composeLinkDescription": "The maintained compose.yml with persistent storage and health checks.",
+			"startLink": "Start and verify the services",
+			"startLinkDescription": "Start the stack, inspect its status, and check that the application is available."
 		}
 	}
 }

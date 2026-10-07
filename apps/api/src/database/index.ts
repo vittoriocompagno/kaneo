@@ -36,12 +36,15 @@ import {
 } from "./relations";
 import { resolveDatabaseConnectionString } from "./resolve-database-url";
 import {
+  dataMigrationTable,
+  storageCleanupTable,
   accountTable,
   activityTable,
   apikeyTable,
   assetTable,
   billingEventTable,
   billingReminderSentTable,
+  calendarFeedTable,
   columnTable,
   commentTable,
   customFieldDefinitionTable,
@@ -74,6 +77,8 @@ import {
   workflowRuleTable,
   workspaceBillingTable,
   workspaceRoleTable,
+  workspaceMemberAccessTable,
+  workspaceMemberProjectTable,
   workspaceTable,
   workspaceUserTable,
 } from "./schema";
@@ -81,12 +86,15 @@ import {
 config();
 
 export const schema = {
+  dataMigrationTable,
+  storageCleanupTable,
   accountTable,
   assetTable,
   activityTable,
   apikeyTable,
   billingReminderSentTable,
   billingEventTable,
+  calendarFeedTable,
   workspaceBillingTable,
   columnTable,
   commentTable,
@@ -117,6 +125,8 @@ export const schema = {
   verificationTable,
   workflowRuleTable,
   workspaceRoleTable,
+  workspaceMemberAccessTable,
+  workspaceMemberProjectTable,
   workspaceTable,
   workspaceUserTable,
   accountTableRelations,

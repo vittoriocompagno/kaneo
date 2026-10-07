@@ -1,4 +1,5 @@
 import { z } from "../openapi";
+import { PROJECT_STATUSES } from "./project-status";
 
 export const projectParam = z.object({ id: z.string() });
 
@@ -28,6 +29,20 @@ export const createProjectBody = z.object({
     description:
       "Save the copy as a reusable template; requires sourceProjectId.",
   }),
+  parentProjectId: z.string().min(1).optional().openapi({
+    description:
+      "Create the project as a subproject of this top-level project in the same workspace. Not allowed together with asTemplate.",
+  }),
+});
+
+export const setProjectParentBody = z.object({
+  parentProjectId: z.string().min(1).nullable().openapi({
+    description: "The new parent, or null to make the project top-level again.",
+  }),
+});
+
+export const setProjectStatusBody = z.object({
+  status: z.enum(PROJECT_STATUSES),
 });
 
 export const updateProjectBody = z.object({
@@ -45,3 +60,16 @@ export const reorderProjectsBody = z.object({
     .array(z.object({ id: z.string(), position: z.number().int().min(0) }))
     .min(1),
 });
+
+export const uploadProjectBackgroundBody = z.object({
+  contentType: z.string(),
+  size: z.number(),
+});
+
+export const finalizeProjectBackgroundBody = z.object({
+  key: z.string(),
+  contentType: z.string(),
+  version: z.string(),
+  size: z.number(),
+});
+export const moveProjectBody = z.object({ workspaceId: z.string().min(1) });

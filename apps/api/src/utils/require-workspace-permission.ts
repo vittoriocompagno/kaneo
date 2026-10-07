@@ -53,8 +53,9 @@ function parsePermissionStatements(
 async function customRoleStatements(
   workspaceId: string,
   role: string,
+  database: Pick<typeof db, "select"> = db,
 ): Promise<Record<string, readonly string[]> | null> {
-  const [row] = await db
+  const [row] = await database
     .select({ permission: schema.workspaceRoleTable.permission })
     .from(schema.workspaceRoleTable)
     .where(
@@ -84,11 +85,27 @@ function satisfies(
   return true;
 }
 
+export async function roleHasWorkspacePermission(
+  workspaceId: string,
+  role: string,
+  permissions: PermissionMap,
+  database: Pick<typeof db, "select"> = db,
+) {
+  const statements =
+    (await customRoleStatements(workspaceId, role, database)) ??
+    builtInRoleStatements(role);
+  return Boolean(statements && satisfies(statements, permissions));
+}
+
 export async function hasWorkspacePermission(
   c: Context,
   permissions: PermissionMap,
+  // Checks a workspace other than the one the request authorized against.
+  // Needed when a single request touches two workspaces (e.g. moving a
+  // project), since the access middleware only resolves one.
+  workspaceIdOverride?: string,
 ) {
-  const workspaceId = c.get("workspaceId");
+  const workspaceId = workspaceIdOverride ?? c.get("workspaceId");
   if (!workspaceId) return false;
 
   const apiKey = c.get("apiKey") as

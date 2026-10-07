@@ -1,5 +1,5 @@
 import type { WSContext } from "hono/ws";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import { eventContext, publishEvent } from "../../../apps/api/src/events";
 import {
   addConnection,
@@ -44,6 +44,7 @@ describe("awaited label deletion broadcasts", () => {
           observer as unknown as WSContext,
           "observer",
           "other",
+          "workspace",
         ),
       ],
       [
@@ -53,6 +54,7 @@ describe("awaited label deletion broadcasts", () => {
           initiator as unknown as WSContext,
           "initiator",
           "self",
+          "workspace",
         ),
       ],
       [
@@ -62,6 +64,7 @@ describe("awaited label deletion broadcasts", () => {
           foreign as unknown as WSContext,
           "foreign",
           "another",
+          "workspace",
         ),
       ],
     ] as const;
@@ -118,3 +121,27 @@ describe("awaited label deletion broadcasts", () => {
     expect(completed).toBe(true);
   });
 });
+
+vi.mock(
+  "../../../apps/api/src/project-access/filter-users-with-project-access",
+  () => ({
+    filterUsersWithProjectAccess: async (userIds: Iterable<string>) =>
+      new Set(userIds),
+  }),
+);
+vi.mock("../../../apps/api/src/database", () => ({
+  default: {
+    select: (fields: Record<string, unknown>) => ({
+      from: () => ({
+        where: () =>
+          fields.userId
+            ? Promise.resolve([
+                { userId: "observer" },
+                { userId: "initiator" },
+                { userId: "foreign" },
+              ])
+            : { limit: async () => [{ workspaceId: "workspace" }] },
+      }),
+    }),
+  },
+}));

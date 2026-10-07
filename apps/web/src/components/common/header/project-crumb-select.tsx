@@ -11,6 +11,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/menu";
 import useGetProjects from "@/hooks/queries/project/use-get-projects";
+import { cn } from "@/lib/cn";
+import { listProjectsWithDepth } from "@/lib/project-tree";
 
 type ProjectCrumbSelectProps = {
   workspaceId: string;
@@ -55,13 +57,13 @@ export default function ProjectCrumbSelect({
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           {(projects ?? []).length > 0 ? (
-            (projects ?? []).map((project) => {
+            listProjectsWithDepth(projects ?? []).map(({ project, depth }) => {
               return (
                 <DropdownMenuItem
                   key={project.id}
                   disabled={project.id === projectId}
                   onClick={() => onSelectProject(project.id)}
-                  className="h-8 gap-2 text-sm"
+                  className={cn("h-8 gap-2 text-sm", depth > 0 && "pl-6")}
                 >
                   <span className="truncate">{project.name}</span>
                 </DropdownMenuItem>

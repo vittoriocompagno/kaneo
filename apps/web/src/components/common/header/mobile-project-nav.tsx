@@ -2,6 +2,7 @@ import {
   CalendarDays,
   CalendarRange,
   Check,
+  LayoutDashboard,
   Menu,
   Plus,
   SquareKanban,
@@ -16,11 +17,13 @@ import {
 import icons from "@/constants/project-icons";
 import useGetProjects from "@/hooks/queries/project/use-get-projects";
 import { cn } from "@/lib/cn";
+import { listProjectsWithDepth } from "@/lib/project-tree";
 
 type MobileProjectNavProps = {
   workspaceId: string;
   projectId: string;
-  activeView: "backlog" | "board" | "calendar" | "gantt";
+  activeView: "backlog" | "board" | "calendar" | "dashboard" | "gantt";
+  onSelectDashboard: () => void;
   onSelectBoard: () => void;
   onSelectBacklog: () => void;
   onSelectCalendar: () => void;
@@ -33,6 +36,7 @@ export default function MobileProjectNav({
   workspaceId,
   projectId,
   activeView,
+  onSelectDashboard,
   onSelectBoard,
   onSelectBacklog,
   onSelectCalendar,
@@ -62,7 +66,20 @@ export default function MobileProjectNav({
             <p className="px-1 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
               View
             </p>
-            <div className="grid grid-cols-4 gap-1">
+            <div className="grid grid-cols-3 gap-1">
+              <button
+                type="button"
+                onClick={onSelectDashboard}
+                className={cn(
+                  "flex w-full items-center justify-center gap-1 whitespace-nowrap rounded-md border px-2 py-1.5 text-xs font-medium transition-colors",
+                  activeView === "dashboard"
+                    ? "border-border bg-secondary text-foreground"
+                    : "border-transparent text-muted-foreground hover:bg-accent",
+                )}
+              >
+                <LayoutDashboard className="size-3.5" />
+                {t("tasks:dashboard.title")}
+              </button>
               <button
                 type="button"
                 onClick={onSelectBacklog}
@@ -122,29 +139,32 @@ export default function MobileProjectNav({
               Projects
             </p>
             <div className="max-h-56 space-y-0.5 overflow-y-auto">
-              {(projects ?? []).map((project) => {
-                const Icon =
-                  icons[project.icon as keyof typeof icons] || icons.Layout;
-                const isCurrentProject = project.id === projectId;
+              {listProjectsWithDepth(projects ?? []).map(
+                ({ project, depth }) => {
+                  const Icon =
+                    icons[project.icon as keyof typeof icons] || icons.Layout;
+                  const isCurrentProject = project.id === projectId;
 
-                return (
-                  <button
-                    key={project.id}
-                    type="button"
-                    onClick={() => onSelectProject(project.id)}
-                    className={cn(
-                      "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors",
-                      isCurrentProject
-                        ? "bg-accent text-foreground"
-                        : "text-muted-foreground hover:bg-accent hover:text-foreground",
-                    )}
-                  >
-                    <Icon className="size-3.5" />
-                    <span className="flex-1 truncate">{project.name}</span>
-                    {isCurrentProject && <Check className="size-3.5" />}
-                  </button>
-                );
-              })}
+                  return (
+                    <button
+                      key={project.id}
+                      type="button"
+                      onClick={() => onSelectProject(project.id)}
+                      className={cn(
+                        "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors",
+                        depth > 0 && "pl-6",
+                        isCurrentProject
+                          ? "bg-accent text-foreground"
+                          : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                      )}
+                    >
+                      <Icon className="size-3.5" />
+                      <span className="flex-1 truncate">{project.name}</span>
+                      {isCurrentProject && <Check className="size-3.5" />}
+                    </button>
+                  );
+                },
+              )}
             </div>
           </div>
 

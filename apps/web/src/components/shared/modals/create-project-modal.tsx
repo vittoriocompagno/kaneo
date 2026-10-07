@@ -44,6 +44,7 @@ import {
 import icons from "@/constants/project-icons";
 import useCreateProject from "@/hooks/mutations/project/use-create-project";
 import useDeleteProject from "@/hooks/mutations/project/use-delete-project";
+import useGetProjects from "@/hooks/queries/project/use-get-projects";
 import useGetProjectTemplates from "@/hooks/queries/project/use-get-project-templates";
 import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
@@ -55,7 +56,14 @@ type CreateProjectModalProps = {
   open: boolean;
   onClose: () => void;
   mode?: "create" | "duplicate" | "template";
-  sourceProject?: { id: string; name: string; icon: string | null };
+  sourceProject?: {
+    id: string;
+    name: string;
+    icon: string | null;
+    parentProjectId?: string | null;
+  };
+  // Preselects the parent, e.g. when adding a subproject from a project menu.
+  parentProjectId?: string;
 };
 
 function CreateProjectModal({
@@ -63,6 +71,7 @@ function CreateProjectModal({
   onClose,
   mode = "create",
   sourceProject,
+  parentProjectId,
 }: CreateProjectModalProps) {
   const { t } = useTranslation();
   const title =
@@ -88,6 +97,10 @@ function CreateProjectModal({
   const [iconSearch, setIconSearch] = useState("");
   const [selectedTemplateId, setSelectedTemplateId] = useState("");
   const [includeTasks, setIncludeTasks] = useState(false);
+  // A copy lands next to its source unless the user picks otherwise.
+  const [selectedParentId, setSelectedParentId] = useState(
+    parentProjectId ?? sourceProject?.parentProjectId ?? "",
+  );
   const [templateToDelete, setTemplateToDelete] = useState<{
     id: string;
     name: string;
@@ -102,6 +115,22 @@ function CreateProjectModal({
     workspaceId: workspace?.id ?? "",
     enabled: open && mode === "create",
   });
+  const { data: projects } = useGetProjects({
+    workspaceId: workspace?.id ?? "",
+    enabled: open && mode !== "template",
+  });
+  // One level only: only top-level projects can take subprojects.
+  const parentOptions = (projects ?? []).filter(
+    (project) => !project.parentProjectId,
+  );
+  const parentId = parentOptions.some(
+    (project) => project.id === selectedParentId,
+  )
+    ? selectedParentId
+    : "";
+  const selectedParent = parentOptions.find(
+    (project) => project.id === parentId,
+  );
   const { canDeleteProjects } = useWorkspacePermission();
   const { mutateAsync, isPending: isCreating } = useCreateProject();
   const { mutateAsync: deleteProject, isPending: isDeleting } =
@@ -127,6 +156,7 @@ function CreateProjectModal({
     setIconSearch("");
     setSelectedTemplateId("");
     setIncludeTasks(false);
+    setSelectedParentId("");
     setTemplateToDelete(null);
     onClose();
   };
@@ -144,6 +174,9 @@ function CreateProjectModal({
         icon: selectedIcon,
         ...(sourceProjectId ? { sourceProjectId, includeTasks } : {}),
         ...(mode === "template" ? { asTemplate: true } : {}),
+        ...(mode !== "template" && parentId
+          ? { parentProjectId: parentId }
+          : {}),
       });
 
       if (mode === "template") {
@@ -389,6 +422,40 @@ function CreateProjectModal({
                     {t("common:modals.createProject.deleteTemplate")}
                   </Button>
                 )}
+              </div>
+            )}
+            {mode !== "template" && parentOptions.length > 0 && (
+              <div className="space-y-2">
+                <Label htmlFor="project-parent">
+                  {t("common:modals.createProject.parentLabel")}
+                </Label>
+                <Select
+                  value={parentId}
+                  onValueChange={(value) =>
+                    setSelectedParentId(String(value ?? ""))
+                  }
+                >
+                  <SelectTrigger id="project-parent" className="w-full">
+                    <SelectValue
+                      placeholder={t("common:modals.createProject.noParent")}
+                    >
+                      {selectedParent?.name}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">
+                      {t("common:modals.createProject.noParent")}
+                    </SelectItem>
+                    {parentOptions.map((project) => (
+                      <SelectItem key={project.id} value={project.id}>
+                        {project.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  {t("common:modals.createProject.parentHint")}
+                </p>
               </div>
             )}
             {sourceProjectId && (

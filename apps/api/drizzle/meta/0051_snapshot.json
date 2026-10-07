@@ -1,5 +1,5 @@
 {
-	"id": "12175e16-b678-4eca-bb22-85701fd0006c",
+	"id": "de1aba3a-dd83-48d6-93a3-c53b2ff18aee",
 	"prevId": "f9757406-e33b-407b-9849-36c7af901b05",
 	"version": "7",
 	"dialect": "postgresql",
@@ -1446,7 +1446,7 @@
 					"name": "integration_id",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": true
+					"notNull": false
 				},
 				"resource_type": {
 					"name": "resource_type",
@@ -2502,13 +2502,6 @@
 					"type": "boolean",
 					"primaryKey": false,
 					"notNull": false,
-					"default": false
-				},
-				"is_template": {
-					"name": "is_template",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
 					"default": false
 				},
 				"archived_at": {
