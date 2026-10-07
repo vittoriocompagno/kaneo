@@ -3049,7 +3049,7 @@
 				"count_one": "{{count}} sottoprogetto",
 				"count_many": "{{count}} sottoprogetti",
 				"count_other": "{{count}} sottoprogetti",
-				"thisProject": "Solo questo progetto",
+				"thisProject": "Questo progetto",
 				"tasksDone": "{{done}}/{{total}} attività"
 			}
 		}
