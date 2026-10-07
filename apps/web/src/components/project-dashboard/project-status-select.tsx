@@ -7,23 +7,28 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { cn } from "@/lib/cn";
+import type { ProjectDashboard } from "@/fetchers/project/get-project-dashboard";
 import useSetProjectStatus from "@/hooks/mutations/project/use-set-project-status";
 import { toast } from "@/lib/toast";
+
+// The type comes from the API contract; the list fixes the order shown in the
+// menu, and an entry the API does not know fails typecheck.
+export type ProjectStatus = ProjectDashboard["project"]["status"];
 
 export const PROJECT_STATUSES = [
   "in_corso",
   "in_attesa_cliente",
   "in_pausa",
   "chiuso",
-] as const;
-
-export type ProjectStatus = (typeof PROJECT_STATUSES)[number];
+] as const satisfies readonly ProjectStatus[];
 
 type ProjectStatusSelectProps = {
   projectId: string;
   workspaceId: string;
   status: ProjectStatus;
   canEdit: boolean;
+  className?: string;
 };
 
 export function ProjectStatusSelect({
@@ -31,6 +36,7 @@ export function ProjectStatusSelect({
   workspaceId,
   status,
   canEdit,
+  className,
 }: ProjectStatusSelectProps) {
   const { t } = useTranslation();
   const { mutate, isPending } = useSetProjectStatus(workspaceId);
@@ -61,7 +67,7 @@ export function ProjectStatusSelect({
     >
       <SelectTrigger
         size="sm"
-        className="w-auto min-w-40"
+        className={cn("w-auto min-w-40", className)}
         aria-label={t("workspace:projectStatus.label")}
       >
         <SelectValue>{label(status)}</SelectValue>

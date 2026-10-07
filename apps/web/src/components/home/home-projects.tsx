@@ -1,8 +1,10 @@
 import { Link } from "@tanstack/react-router";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Skeleton } from "@/components/ui/skeleton";
 import icons from "@/constants/project-icons";
 import useGetProjects from "@/hooks/queries/project/use-get-projects";
+import { buildProjectTree } from "@/lib/project-tree";
 import { SectionHeader } from "./section-header";
 
 type HomeProjectsProps = {
@@ -18,6 +20,12 @@ export function HomeProjects({ workspaceId }: HomeProjectsProps) {
     isPending,
     isError,
   } = useGetProjects({ workspaceId }, true);
+  // Subprojects are reached through their parent, so the overview lists only
+  // top-level projects.
+  const topLevel = useMemo(
+    () => buildProjectTree(projects ?? []).map((node) => node.project),
+    [projects],
+  );
 
   return (
     <section className="flex flex-col gap-3">
@@ -42,13 +50,13 @@ export function HomeProjects({ workspaceId }: HomeProjectsProps) {
         <p role="alert" className="text-muted-foreground text-sm">
           {t("workspace:home.projects.loadError")}
         </p>
-      ) : !projects?.length ? (
+      ) : !topLevel.length ? (
         <p className="text-muted-foreground text-sm">
           {t("workspace:projects.emptyTitle")}
         </p>
       ) : (
         <div className="grid gap-3 sm:grid-cols-3">
-          {projects.slice(0, VISIBLE_PROJECTS).map((project) => {
+          {topLevel.slice(0, VISIBLE_PROJECTS).map((project) => {
             const ProjectIcon =
               icons[project.icon as keyof typeof icons] || icons.Layout;
             const { completionPercentage, totalTasks } = project.statistics;

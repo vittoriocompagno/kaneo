@@ -1,5 +1,3 @@
-import { Link } from "@tanstack/react-router";
-import { CornerLeftUp } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { ActivityFeed } from "@/components/home/activity-feed";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -52,23 +50,13 @@ export function ProjectDashboard({
     );
   }
 
-  const { project, parent, summary, subprojects } = dashboard;
+  const { project, summary, subprojects } = dashboard;
   const ProjectIcon = icons[project.icon as keyof typeof icons] || icons.Layout;
 
   return (
     <div className="h-full overflow-y-auto">
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-9 px-6 py-10 lg:px-10">
         <header className="flex flex-col gap-3">
-          {parent && (
-            <Link
-              to="/dashboard/workspace/$workspaceId/project/$projectId/dashboard"
-              params={{ workspaceId, projectId: parent.id }}
-              className="inline-flex w-fit items-center gap-1.5 font-medium text-[13px] text-muted-foreground hover:text-foreground"
-            >
-              <CornerLeftUp aria-hidden="true" className="size-3.5" />
-              {t("workspace:projectDashboard.parentOf", { name: parent.name })}
-            </Link>
-          )}
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h1 className="flex min-w-0 items-center gap-2.5 font-semibold text-3xl text-foreground tracking-tight">
               <ProjectIcon
@@ -96,14 +84,13 @@ export function ProjectDashboard({
           )}
         </header>
 
+        <DashboardStats metrics={summary} />
+
         <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_20rem]">
-          <div className="flex min-w-0 flex-col gap-9">
-            <DashboardStats metrics={summary} />
-            <SubprojectBreakdown
-              dashboard={dashboard}
-              workspaceId={workspaceId}
-            />
-          </div>
+          <SubprojectBreakdown
+            dashboard={dashboard}
+            workspaceId={workspaceId}
+          />
           <ActivityFeed workspaceId={workspaceId} projectId={project.id} />
         </div>
       </div>

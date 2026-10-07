@@ -30,7 +30,7 @@ function Stat({ label, value, detail, tone = "default", icon }: StatProps) {
         {value}
       </span>
       {detail && (
-        <span className="truncate text-muted-foreground text-xs">{detail}</span>
+        <span className="text-muted-foreground text-xs">{detail}</span>
       )}
     </div>
   );

@@ -7,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import useSetProjectParent from "@/hooks/mutations/project/use-set-project-parent";
 import useGetProject from "@/hooks/queries/project/use-get-project";
 import useGetProjects from "@/hooks/queries/project/use-get-projects";
@@ -72,8 +73,11 @@ export function ProjectHierarchySettings({
           workspaceId={workspaceId}
           status={project.status}
           canEdit={canEdit}
+          className="w-full sm:w-64"
         />
       </div>
+
+      <Separator />
 
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
         <div className="space-y-0.5">
