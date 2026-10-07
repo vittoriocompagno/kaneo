@@ -36,21 +36,23 @@ function Row({ row, workspaceId }: { row: BreakdownRow; workspaceId: string }) {
             aria-hidden="true"
             className="size-4 shrink-0 text-muted-foreground"
           />
-          <span
-            className={cn(
-              "min-w-0 truncate font-medium text-foreground text-sm",
-              row.isOwn && "text-muted-foreground",
-            )}
-          >
-            {row.isOwn
-              ? t("workspace:projectDashboard.subprojects.thisProject")
-              : row.name}
-          </span>
-          {row.status && (
-            <span className="hidden shrink-0 text-muted-foreground text-xs md:inline">
-              {t(`workspace:projectStatus.${row.status}`)}
+          <span className="flex min-w-0 flex-col">
+            <span
+              className={cn(
+                "truncate font-medium text-foreground text-sm",
+                row.isOwn && "text-muted-foreground",
+              )}
+            >
+              {row.isOwn
+                ? t("workspace:projectDashboard.subprojects.thisProject")
+                : row.name}
             </span>
-          )}
+            {row.status && (
+              <span className="truncate text-muted-foreground text-xs">
+                {t(`workspace:projectStatus.${row.status}`)}
+              </span>
+            )}
+          </span>
         </span>
         <span className="flex items-center gap-2 max-sm:order-last max-sm:col-span-2">
           <span className="h-1 flex-1 overflow-hidden rounded-full bg-muted">
