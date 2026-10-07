@@ -446,6 +446,15 @@
 								},
 								"templateDeleteError": {
 									"type": "string"
+								},
+								"parentLabel": {
+									"type": "string"
+								},
+								"noParent": {
+									"type": "string"
+								},
+								"parentHint": {
+									"type": "string"
 								}
 							},
 							"required": [
@@ -480,7 +489,10 @@
 								"deleteTemplateTitle",
 								"deleteTemplateDescription",
 								"templateDeletedToast",
-								"templateDeleteError"
+								"templateDeleteError",
+								"parentLabel",
+								"noParent",
+								"parentHint"
 							]
 						},
 						"createWorkspace": {
@@ -4944,6 +4956,36 @@
 						},
 						"toastMoveError": {
 							"type": "string"
+						},
+						"parentLabel": {
+							"type": "string"
+						},
+						"parentHint": {
+							"type": "string"
+						},
+						"parentBlockedHint_one": {
+							"type": "string"
+						},
+						"parentBlockedHint_zero": {
+							"type": "string"
+						},
+						"parentBlockedHint_two": {
+							"type": "string"
+						},
+						"parentBlockedHint_few": {
+							"type": "string"
+						},
+						"parentBlockedHint_many": {
+							"type": "string"
+						},
+						"parentBlockedHint_other": {
+							"type": "string"
+						},
+						"noParent": {
+							"type": "string"
+						},
+						"parentError": {
+							"type": "string"
 						}
 					},
 					"required": [
@@ -4998,7 +5040,11 @@
 						"moveModalConfirm",
 						"toastMoved",
 						"toastMovedWithUnassigned",
-						"toastMoveError"
+						"toastMoveError",
+						"parentLabel",
+						"parentHint",
+						"noParent",
+						"parentError"
 					]
 				},
 				"projectIntegrations": {
@@ -8454,6 +8500,9 @@
 						},
 						"saveAsTemplate": {
 							"type": "string"
+						},
+						"addSubproject": {
+							"type": "string"
 						}
 					},
 					"required": [
@@ -8467,7 +8516,8 @@
 						"deletedToast",
 						"deleteProject",
 						"duplicateProject",
-						"saveAsTemplate"
+						"saveAsTemplate",
+						"addSubproject"
 					]
 				},
 				"search": {
@@ -8743,6 +8793,22 @@
 						"categories",
 						"items"
 					]
+				},
+				"projectFamily": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"label": {
+							"type": "string"
+						},
+						"parent": {
+							"type": "string"
+						},
+						"subprojects": {
+							"type": "string"
+						}
+					},
+					"required": ["label", "parent", "subprojects"]
 				}
 			},
 			"required": [
@@ -8755,7 +8821,8 @@
 				"workspaceSwitcher",
 				"page",
 				"projectSettings",
-				"keyboardShortcuts"
+				"keyboardShortcuts",
+				"projectFamily"
 			]
 		},
 		"notifications": {
@@ -11598,6 +11665,16 @@
 						}
 					},
 					"required": ["reorderFailed"]
+				},
+				"dashboard": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"title": {
+							"type": "string"
+						}
+					},
+					"required": ["title"]
 				}
 			},
 			"required": [
@@ -11640,7 +11717,8 @@
 				"descriptionRetry",
 				"descriptionLoading",
 				"descriptionLoadError",
-				"board"
+				"board",
+				"dashboard"
 			]
 		},
 		"invitations": {
@@ -12248,9 +12326,211 @@
 						}
 					},
 					"required": ["pageTitle", "emptyDescription", "groupBy", "truncated"]
+				},
+				"projectStatus": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"label": {
+							"type": "string"
+						},
+						"hint": {
+							"type": "string"
+						},
+						"updateError": {
+							"type": "string"
+						},
+						"in_corso": {
+							"type": "string"
+						},
+						"in_attesa_cliente": {
+							"type": "string"
+						},
+						"in_pausa": {
+							"type": "string"
+						},
+						"chiuso": {
+							"type": "string"
+						}
+					},
+					"required": [
+						"label",
+						"hint",
+						"updateError",
+						"in_corso",
+						"in_attesa_cliente",
+						"in_pausa",
+						"chiuso"
+					]
+				},
+				"projectDashboard": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"loadError": {
+							"type": "string"
+						},
+						"parentOf": {
+							"type": "string"
+						},
+						"aggregateNote_one": {
+							"type": "string"
+						},
+						"aggregateNote_zero": {
+							"type": "string"
+						},
+						"aggregateNote_two": {
+							"type": "string"
+						},
+						"aggregateNote_few": {
+							"type": "string"
+						},
+						"aggregateNote_many": {
+							"type": "string"
+						},
+						"aggregateNote_other": {
+							"type": "string"
+						},
+						"health": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"not_started": {
+									"type": "string"
+								},
+								"on_track": {
+									"type": "string"
+								},
+								"at_risk": {
+									"type": "string"
+								},
+								"late": {
+									"type": "string"
+								},
+								"complete": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"not_started",
+								"on_track",
+								"at_risk",
+								"late",
+								"complete"
+							]
+						},
+						"stats": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"hours": {
+									"type": "string"
+								},
+								"done": {
+									"type": "string"
+								},
+								"ofTotal_one": {
+									"type": "string"
+								},
+								"ofTotal_zero": {
+									"type": "string"
+								},
+								"ofTotal_two": {
+									"type": "string"
+								},
+								"ofTotal_few": {
+									"type": "string"
+								},
+								"ofTotal_many": {
+									"type": "string"
+								},
+								"ofTotal_other": {
+									"type": "string"
+								},
+								"remaining": {
+									"type": "string"
+								},
+								"progress": {
+									"type": "string"
+								},
+								"overdue": {
+									"type": "string"
+								},
+								"dueSoon_one": {
+									"type": "string"
+								},
+								"dueSoon_zero": {
+									"type": "string"
+								},
+								"dueSoon_two": {
+									"type": "string"
+								},
+								"dueSoon_few": {
+									"type": "string"
+								},
+								"dueSoon_many": {
+									"type": "string"
+								},
+								"dueSoon_other": {
+									"type": "string"
+								}
+							},
+							"required": ["hours", "done", "remaining", "progress", "overdue"]
+						},
+						"subprojects": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"count_one": {
+									"type": "string"
+								},
+								"count_zero": {
+									"type": "string"
+								},
+								"count_two": {
+									"type": "string"
+								},
+								"count_few": {
+									"type": "string"
+								},
+								"count_many": {
+									"type": "string"
+								},
+								"count_other": {
+									"type": "string"
+								},
+								"thisProject": {
+									"type": "string"
+								},
+								"tasksDone": {
+									"type": "string"
+								}
+							},
+							"required": ["title", "thisProject", "tasksDone"]
+						}
+					},
+					"required": [
+						"loadError",
+						"parentOf",
+						"health",
+						"stats",
+						"subprojects"
+					]
 				}
 			},
-			"required": ["projects", "search", "create", "home", "myWork", "myTasks"]
+			"required": [
+				"projects",
+				"search",
+				"create",
+				"home",
+				"myWork",
+				"myTasks",
+				"projectStatus",
+				"projectDashboard"
+			]
 		},
 		"team": {
 			"type": "object",

@@ -117,7 +117,10 @@
 				"deleteTemplateTitle": "Delete template?",
 				"deleteTemplateDescription": "This permanently deletes “{{name}}” and any tasks saved in it. Projects created from it are unaffected.",
 				"templateDeletedToast": "Template deleted",
-				"templateDeleteError": "Failed to delete template"
+				"templateDeleteError": "Failed to delete template",
+				"noParent": "None (top-level project)",
+				"parentHint": "A subproject is a full project with its own board. It sits under its parent in the sidebar.",
+				"parentLabel": "Parent project"
 			},
 			"createWorkspace": {
 				"breadcrumbKaneo": "KANEO",
@@ -1037,7 +1040,12 @@
 			"moveTargetsError": "Couldn't check which workspaces you can move this project to. Reload to try again.",
 			"toastMoved": "Project moved successfully",
 			"toastMovedWithUnassigned": "Project moved successfully. {{taskCount}} task(s) were unassigned.",
-			"toastMoveError": "Failed to move project"
+			"toastMoveError": "Failed to move project",
+			"noParent": "None (top-level project)",
+			"parentBlockedHint_other": "This project has {{count}} subprojects, so it can't be nested under another project.",
+			"parentError": "The parent project couldn't be changed.",
+			"parentHint": "Nest this project under another one. Only top-level projects can be parents.",
+			"parentLabel": "Parent project"
 		},
 		"projectIntegrations": {
 			"pageTitle": "プロジェクト連携",
@@ -2076,7 +2084,8 @@
 			"deletedToast": "プロジェクトを削除しました",
 			"deleteProject": "プロジェクトを削除",
 			"duplicateProject": "Duplicate project",
-			"saveAsTemplate": "Save as template"
+			"saveAsTemplate": "Save as template",
+			"addSubproject": "Add subproject"
 		},
 		"search": {
 			"inputPlaceholder": "タスク、プロジェクト、コメントを検索...",
@@ -2147,6 +2156,11 @@
 				"openTask": "選択したタスクを開く",
 				"quickSelectNumber": "番号で項目を選択"
 			}
+		},
+		"projectFamily": {
+			"label": "Project hierarchy",
+			"parent": "Part of {{name}}",
+			"subprojects": "Subprojects"
 		}
 	},
 	"notifications": {
@@ -2805,6 +2819,9 @@
 		},
 		"board": {
 			"reorderFailed": "Could not move task. Please try again."
+		},
+		"dashboard": {
+			"title": "Dashboard"
 		}
 	},
 	"invitations": {
@@ -2949,6 +2966,42 @@
 			},
 			"empty": "Nothing assigned to you",
 			"loadError": "Your tasks couldn't be loaded."
+		},
+		"projectDashboard": {
+			"aggregateNote_other": "Totals include this project and {{count}} subprojects.",
+			"health": {
+				"at_risk": "At risk",
+				"complete": "Complete",
+				"late": "Late",
+				"not_started": "No tasks yet",
+				"on_track": "On track"
+			},
+			"loadError": "The dashboard couldn't be loaded.",
+			"parentOf": "Part of {{name}}",
+			"stats": {
+				"done": "Tasks done",
+				"dueSoon_other": "{{count}} due this week",
+				"hours": "Hours worked",
+				"ofTotal_other": "of {{count}} tasks",
+				"overdue": "Overdue",
+				"progress": "Progress",
+				"remaining": "Tasks remaining"
+			},
+			"subprojects": {
+				"count_other": "{{count}} subprojects",
+				"tasksDone": "{{done}}/{{total}} tasks",
+				"thisProject": "This project only",
+				"title": "Subprojects"
+			}
+		},
+		"projectStatus": {
+			"chiuso": "Closed",
+			"hint": "Set by hand. Separate from the automatic health indicator.",
+			"in_attesa_cliente": "Waiting for client",
+			"in_corso": "In progress",
+			"in_pausa": "On hold",
+			"label": "Project status",
+			"updateError": "The project status couldn't be updated."
 		}
 	},
 	"team": {

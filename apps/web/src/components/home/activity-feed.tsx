@@ -1,22 +1,30 @@
 import { useTranslation } from "react-i18next";
 import { Skeleton } from "@/components/ui/skeleton";
+import useGetProjectActivities from "@/hooks/queries/activity/use-get-project-activities";
 import useGetWorkspaceActivities from "@/hooks/queries/activity/use-get-workspace-activities";
 import { ActivityFeedItem } from "./activity-feed-item";
 import { SectionHeader } from "./section-header";
 
 type ActivityFeedProps = {
   workspaceId: string;
+  // Narrows the feed to one project and its subprojects.
+  projectId?: string;
 };
 
 const VISIBLE_ACTIVITIES = 8;
 
-export function ActivityFeed({ workspaceId }: ActivityFeedProps) {
+export function ActivityFeed({ workspaceId, projectId }: ActivityFeedProps) {
   const { t } = useTranslation();
+  // Both hooks always run; the one that is not wanted stays disabled.
+  const workspaceFeed = useGetWorkspaceActivities(
+    projectId ? undefined : workspaceId,
+  );
+  const projectFeed = useGetProjectActivities(projectId);
   const {
     data: activities,
     isLoading,
     isError,
-  } = useGetWorkspaceActivities(workspaceId);
+  } = projectId ? projectFeed : workspaceFeed;
 
   return (
     <section>

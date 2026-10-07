@@ -18,6 +18,7 @@ import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import PageTitle from "@/components/page-title";
+import { ProjectHierarchySettings } from "@/components/project/project-hierarchy-settings";
 import { TasksImportExport } from "@/components/project/tasks-import-export.tsx";
 import {
   AlertDialog,
@@ -726,6 +727,16 @@ function RouteComponent() {
               </form>
             </Form>
             <Separator />
+            {project?.workspaceId && (
+              <>
+                <ProjectHierarchySettings
+                  projectId={projectId}
+                  workspaceId={project.workspaceId}
+                  canEdit={canEdit}
+                />
+                <Separator />
+              </>
+            )}
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
               <div className="space-y-0.5">
                 <p className="text-sm font-medium">

@@ -117,7 +117,10 @@
 				"deleteTemplateTitle": "Delete template?",
 				"deleteTemplateDescription": "This permanently deletes “{{name}}” and any tasks saved in it. Projects created from it are unaffected.",
 				"templateDeletedToast": "Template deleted",
-				"templateDeleteError": "Failed to delete template"
+				"templateDeleteError": "Failed to delete template",
+				"noParent": "None (top-level project)",
+				"parentHint": "A subproject is a full project with its own board. It sits under its parent in the sidebar.",
+				"parentLabel": "Parent project"
 			},
 			"createWorkspace": {
 				"breadcrumbKaneo": "KANEO",
@@ -1037,7 +1040,12 @@
 			"toastMoved": "项目移动成功",
 			"toastMovedWithUnassigned": "项目移动成功。已取消分配 {{taskCount}} 个任务。",
 			"toastMoveError": "移动项目失败",
-			"moveTargetsError": "无法检查你可以将此项目移动到哪些工作区。请重新加载页面后重试。"
+			"moveTargetsError": "无法检查你可以将此项目移动到哪些工作区。请重新加载页面后重试。",
+			"noParent": "None (top-level project)",
+			"parentBlockedHint_other": "This project has {{count}} subprojects, so it can't be nested under another project.",
+			"parentError": "The parent project couldn't be changed.",
+			"parentHint": "Nest this project under another one. Only top-level projects can be parents.",
+			"parentLabel": "Parent project"
 		},
 		"projectIntegrations": {
 			"pageTitle": "项目集成",
@@ -2076,7 +2084,8 @@
 			"deletedToast": "项目已删除",
 			"deleteProject": "删除项目",
 			"duplicateProject": "Duplicate project",
-			"saveAsTemplate": "Save as template"
+			"saveAsTemplate": "Save as template",
+			"addSubproject": "Add subproject"
 		},
 		"search": {
 			"inputPlaceholder": "搜索任务、项目、评论…",
@@ -2147,6 +2156,11 @@
 				"openTask": "打开所选任务",
 				"quickSelectNumber": "按数字选择选项"
 			}
+		},
+		"projectFamily": {
+			"label": "Project hierarchy",
+			"parent": "Part of {{name}}",
+			"subprojects": "Subprojects"
 		}
 	},
 	"notifications": {
@@ -2805,6 +2819,9 @@
 		},
 		"board": {
 			"reorderFailed": "无法移动任务，请重试。"
+		},
+		"dashboard": {
+			"title": "Dashboard"
 		}
 	},
 	"invitations": {
@@ -2949,6 +2966,42 @@
 			},
 			"empty": "暂时没有指派给你的任务",
 			"loadError": "你的任务加载失败。"
+		},
+		"projectDashboard": {
+			"aggregateNote_other": "Totals include this project and {{count}} subprojects.",
+			"health": {
+				"at_risk": "At risk",
+				"complete": "Complete",
+				"late": "Late",
+				"not_started": "No tasks yet",
+				"on_track": "On track"
+			},
+			"loadError": "The dashboard couldn't be loaded.",
+			"parentOf": "Part of {{name}}",
+			"stats": {
+				"done": "Tasks done",
+				"dueSoon_other": "{{count}} due this week",
+				"hours": "Hours worked",
+				"ofTotal_other": "of {{count}} tasks",
+				"overdue": "Overdue",
+				"progress": "Progress",
+				"remaining": "Tasks remaining"
+			},
+			"subprojects": {
+				"count_other": "{{count}} subprojects",
+				"tasksDone": "{{done}}/{{total}} tasks",
+				"thisProject": "This project only",
+				"title": "Subprojects"
+			}
+		},
+		"projectStatus": {
+			"chiuso": "Closed",
+			"hint": "Set by hand. Separate from the automatic health indicator.",
+			"in_attesa_cliente": "Waiting for client",
+			"in_corso": "In progress",
+			"in_pausa": "On hold",
+			"label": "Project status",
+			"updateError": "The project status couldn't be updated."
 		}
 	},
 	"team": {

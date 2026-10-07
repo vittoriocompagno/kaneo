@@ -97,7 +97,30 @@
 				"keyHint": "用於任務編號（例如 {{example}}-123）",
 				"createButton": "建立專案",
 				"successToast": "專案已建立",
-				"errorToast": "無法建立專案"
+				"errorToast": "無法建立專案",
+				"blankSource": "Blank project",
+				"copyScope": "Copies column order, icons, colors and final states, custom fields, and workflow rules. The new project is private.",
+				"deleteTemplate": "Delete template",
+				"deleteTemplateDescription": "This permanently deletes “{{name}}” and any tasks saved in it. Projects created from it are unaffected.",
+				"deleteTemplateTitle": "Delete template?",
+				"duplicateButton": "Duplicate project",
+				"duplicateName": "{{name}} copy",
+				"duplicateTitle": "Duplicate project",
+				"includeTasks": "Include tasks",
+				"noParent": "None (top-level project)",
+				"noTemplates": "No saved templates in this workspace yet.",
+				"parentHint": "A subproject is a full project with its own board. It sits under its parent in the sidebar.",
+				"parentLabel": "Parent project",
+				"taskScope": "Only task title, description, status, priority, column, position, labels, and custom field values. No assignees, dates, comments, activity, links, relations, attachments, time entries, or notifications.",
+				"templateButton": "Save template",
+				"templateDeletedToast": "Template deleted",
+				"templateDeleteError": "Failed to delete template",
+				"templateName": "{{name}} template",
+				"templatesLoadError": "Couldn't load templates. Retry",
+				"templateSource": "Start from a template",
+				"templateSuccessToast": "Template saved",
+				"templateTitle": "Save as template",
+				"templateVisibility": "Saved templates appear in this workspace's template picker, not the project list."
 			},
 			"createWorkspace": {
 				"breadcrumbKaneo": "KANEO",
@@ -1016,7 +1039,12 @@
 			"toastMoved": "專案已移動",
 			"toastMovedWithUnassigned": "專案已移動。有 {{taskCount}} 個任務已變為未指派。",
 			"toastMoveError": "移動專案失敗",
-			"moveTargetsError": "無法確認你可以將此專案移動到哪些工作區。請重新載入後再試一次。"
+			"moveTargetsError": "無法確認你可以將此專案移動到哪些工作區。請重新載入後再試一次。",
+			"noParent": "None (top-level project)",
+			"parentBlockedHint_other": "This project has {{count}} subprojects, so it can't be nested under another project.",
+			"parentError": "The parent project couldn't be changed.",
+			"parentHint": "Nest this project under another one. Only top-level projects can be parents.",
+			"parentLabel": "Parent project"
 		},
 		"projectIntegrations": {
 			"pageTitle": "專案整合",
@@ -2054,7 +2082,10 @@
 			"deleteConfirmTitle": "要刪除專案嗎？",
 			"deleteConfirmDescription": "這會永久移除專案及其所有資料，此操作無法復原。",
 			"deletedToast": "專案已刪除",
-			"deleteProject": "刪除專案"
+			"deleteProject": "刪除專案",
+			"addSubproject": "Add subproject",
+			"duplicateProject": "Duplicate project",
+			"saveAsTemplate": "Save as template"
 		},
 		"search": {
 			"inputPlaceholder": "搜尋任務、專案、留言...",
@@ -2125,6 +2156,11 @@
 				"openTask": "開啟選取的任務",
 				"quickSelectNumber": "依數字選取選項"
 			}
+		},
+		"projectFamily": {
+			"label": "Project hierarchy",
+			"parent": "Part of {{name}}",
+			"subprojects": "Subprojects"
 		}
 	},
 	"notifications": {
@@ -2783,6 +2819,9 @@
 		},
 		"board": {
 			"reorderFailed": "無法移動任務，請再試一次。"
+		},
+		"dashboard": {
+			"title": "Dashboard"
 		}
 	},
 	"invitations": {
@@ -2927,6 +2966,42 @@
 				"project": "專案"
 			},
 			"truncated": "顯示 {{total}} 個任務中的前 {{shown}} 個。"
+		},
+		"projectDashboard": {
+			"aggregateNote_other": "Totals include this project and {{count}} subprojects.",
+			"health": {
+				"at_risk": "At risk",
+				"complete": "Complete",
+				"late": "Late",
+				"not_started": "No tasks yet",
+				"on_track": "On track"
+			},
+			"loadError": "The dashboard couldn't be loaded.",
+			"parentOf": "Part of {{name}}",
+			"stats": {
+				"done": "Tasks done",
+				"dueSoon_other": "{{count}} due this week",
+				"hours": "Hours worked",
+				"ofTotal_other": "of {{count}} tasks",
+				"overdue": "Overdue",
+				"progress": "Progress",
+				"remaining": "Tasks remaining"
+			},
+			"subprojects": {
+				"count_other": "{{count}} subprojects",
+				"tasksDone": "{{done}}/{{total}} tasks",
+				"thisProject": "This project only",
+				"title": "Subprojects"
+			}
+		},
+		"projectStatus": {
+			"chiuso": "Closed",
+			"hint": "Set by hand. Separate from the automatic health indicator.",
+			"in_attesa_cliente": "Waiting for client",
+			"in_corso": "In progress",
+			"in_pausa": "On hold",
+			"label": "Project status",
+			"updateError": "The project status couldn't be updated."
 		}
 	},
 	"team": {

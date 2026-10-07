@@ -117,7 +117,10 @@
 				"deleteTemplateTitle": "Delete template?",
 				"deleteTemplateDescription": "This permanently deletes “{{name}}” and any tasks saved in it. Projects created from it are unaffected.",
 				"templateDeletedToast": "Template deleted",
-				"templateDeleteError": "Failed to delete template"
+				"templateDeleteError": "Failed to delete template",
+				"noParent": "None (top-level project)",
+				"parentHint": "A subproject is a full project with its own board. It sits under its parent in the sidebar.",
+				"parentLabel": "Parent project"
 			},
 			"createWorkspace": {
 				"breadcrumbKaneo": "KANEO",
@@ -701,7 +704,14 @@
 			"toastMoved": "Proyecto movido correctamente",
 			"toastMovedWithUnassigned": "Proyecto movido correctamente. {{taskCount}} tarea(s) quedaron sin asignar.",
 			"toastMoveError": "No se pudo mover el proyecto",
-			"moveTargetsError": "No se pudo comprobar a qué espacios de trabajo puedes mover este proyecto. Vuelve a cargar la página para intentarlo de nuevo."
+			"moveTargetsError": "No se pudo comprobar a qué espacios de trabajo puedes mover este proyecto. Vuelve a cargar la página para intentarlo de nuevo.",
+			"noParent": "None (top-level project)",
+			"parentBlockedHint_many": "This project has {{count}} subprojects, so it can't be nested under another project.",
+			"parentBlockedHint_one": "This project has {{count}} subproject, so it can't be nested under another project.",
+			"parentBlockedHint_other": "This project has {{count}} subprojects, so it can't be nested under another project.",
+			"parentError": "The parent project couldn't be changed.",
+			"parentHint": "Nest this project under another one. Only top-level projects can be parents.",
+			"parentLabel": "Parent project"
 		},
 		"projectIntegrations": {
 			"pageTitle": "Integraciones del Proyecto",
@@ -2098,7 +2108,8 @@
 			"deleteProject": "Eliminar proyecto",
 			"projectSettings": "Ajustes del proyecto",
 			"duplicateProject": "Duplicate project",
-			"saveAsTemplate": "Save as template"
+			"saveAsTemplate": "Save as template",
+			"addSubproject": "Add subproject"
 		},
 		"search": {
 			"inputPlaceholder": "Busca tareas, proyectos, comentarios...",
@@ -2169,6 +2180,11 @@
 				"quickSelectNumber": "Seleccionar opción por número",
 				"calendarView": "Cambiar a vista de calendario"
 			}
+		},
+		"projectFamily": {
+			"label": "Project hierarchy",
+			"parent": "Part of {{name}}",
+			"subprojects": "Subprojects"
 		}
 	},
 	"notifications": {
@@ -2837,6 +2853,9 @@
 		},
 		"board": {
 			"reorderFailed": "Could not move task. Please try again."
+		},
+		"dashboard": {
+			"title": "Dashboard"
 		}
 	},
 	"invitations": {
@@ -2989,6 +3008,50 @@
 			},
 			"empty": "Nothing assigned to you",
 			"loadError": "Your tasks couldn't be loaded."
+		},
+		"projectDashboard": {
+			"aggregateNote_many": "Totals include this project and {{count}} subprojects.",
+			"aggregateNote_one": "Totals include this project and {{count}} subproject.",
+			"aggregateNote_other": "Totals include this project and {{count}} subprojects.",
+			"health": {
+				"at_risk": "At risk",
+				"complete": "Complete",
+				"late": "Late",
+				"not_started": "No tasks yet",
+				"on_track": "On track"
+			},
+			"loadError": "The dashboard couldn't be loaded.",
+			"parentOf": "Part of {{name}}",
+			"stats": {
+				"done": "Tasks done",
+				"dueSoon_many": "{{count}} due this week",
+				"dueSoon_one": "{{count}} due this week",
+				"dueSoon_other": "{{count}} due this week",
+				"hours": "Hours worked",
+				"ofTotal_many": "of {{count}} tasks",
+				"ofTotal_one": "of {{count}} task",
+				"ofTotal_other": "of {{count}} tasks",
+				"overdue": "Overdue",
+				"progress": "Progress",
+				"remaining": "Tasks remaining"
+			},
+			"subprojects": {
+				"count_many": "{{count}} subprojects",
+				"count_one": "{{count}} subproject",
+				"count_other": "{{count}} subprojects",
+				"tasksDone": "{{done}}/{{total}} tasks",
+				"thisProject": "This project only",
+				"title": "Subprojects"
+			}
+		},
+		"projectStatus": {
+			"chiuso": "Closed",
+			"hint": "Set by hand. Separate from the automatic health indicator.",
+			"in_attesa_cliente": "Waiting for client",
+			"in_corso": "In progress",
+			"in_pausa": "On hold",
+			"label": "Project status",
+			"updateError": "The project status couldn't be updated."
 		}
 	},
 	"team": {

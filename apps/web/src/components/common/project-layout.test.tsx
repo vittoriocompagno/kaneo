@@ -11,6 +11,15 @@ const project = vi.hoisted(() => ({
   },
 }));
 
+const projectList = vi.hoisted(() => ({
+  current: [] as Array<{
+    id: string;
+    name: string;
+    icon: string | null;
+    parentProjectId: string | null;
+  }>,
+}));
+
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => vi.fn(),
   useLocation: () => ({ pathname: "/board" }),
@@ -23,6 +32,9 @@ vi.mock("react-i18next", () => ({
 }));
 vi.mock("@/hooks/queries/project/use-get-project", () => ({
   default: () => project.current,
+}));
+vi.mock("@/hooks/queries/project/use-get-projects", () => ({
+  default: () => ({ data: projectList.current }),
 }));
 vi.mock("@/hooks/use-project-websocket", () => ({
   useProjectWebSocket: () => undefined,
@@ -50,7 +62,10 @@ vi.mock("@/components/shared/modals/create-project-modal", () => ({
 }));
 vi.mock("@/components/page-title", () => ({ default: () => null }));
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  projectList.current = [];
+});
 
 function renderLayout() {
   render(
@@ -94,5 +109,30 @@ describe("ProjectLayout access states", () => {
     renderLayout();
 
     expect(screen.getByText("Board content")).toBeVisible();
+  });
+
+  it("links a subproject to its parent and a parent to its subprojects", () => {
+    project.current = { data: { name: "Alpha" }, error: null };
+    projectList.current = [
+      { id: "project-1", name: "Alpha", icon: null, parentProjectId: null },
+      { id: "kid-1", name: "Kid", icon: null, parentProjectId: "project-1" },
+    ];
+    renderLayout();
+    expect(
+      screen.getByRole("navigation", {
+        name: "navigation:projectFamily.label",
+      }),
+    ).toBeVisible();
+    expect(screen.getByRole("link", { name: "Kid" })).toBeVisible();
+    expect(screen.getByText("Board content")).toBeVisible();
+  });
+
+  it("shows no hierarchy bar for a standalone project", () => {
+    project.current = { data: { name: "Alpha" }, error: null };
+    projectList.current = [
+      { id: "project-1", name: "Alpha", icon: null, parentProjectId: null },
+    ];
+    renderLayout();
+    expect(screen.queryByRole("navigation")).toBeNull();
   });
 });

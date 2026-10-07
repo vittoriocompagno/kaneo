@@ -117,7 +117,10 @@
 				"deleteTemplateTitle": "Delete template?",
 				"deleteTemplateDescription": "This permanently deletes “{{name}}” and any tasks saved in it. Projects created from it are unaffected.",
 				"templateDeletedToast": "Template deleted",
-				"templateDeleteError": "Failed to delete template"
+				"templateDeleteError": "Failed to delete template",
+				"parentLabel": "Progetto padre",
+				"noParent": "Nessuno (progetto principale)",
+				"parentHint": "Un sottoprogetto è un progetto completo con la sua bacheca. Nella barra laterale sta sotto il progetto padre."
 			},
 			"createWorkspace": {
 				"breadcrumbKaneo": "KANEO",
@@ -1041,7 +1044,14 @@
 			"toastMoved": "Progetto spostato con successo",
 			"toastMovedWithUnassigned": "Progetto spostato con successo. {{taskCount}} attività sono rimaste senza assegnatario.",
 			"toastMoveError": "Impossibile spostare il progetto",
-			"moveTargetsError": "Non è stato possibile verificare in quali spazi di lavoro puoi spostare questo progetto. Ricarica la pagina per riprovare."
+			"moveTargetsError": "Non è stato possibile verificare in quali spazi di lavoro puoi spostare questo progetto. Ricarica la pagina per riprovare.",
+			"parentLabel": "Progetto padre",
+			"parentHint": "Annida questo progetto sotto un altro. Solo i progetti principali possono essere padri.",
+			"parentBlockedHint_one": "Questo progetto ha {{count}} sottoprogetto, quindi non può essere annidato sotto un altro progetto.",
+			"parentBlockedHint_many": "Questo progetto ha {{count}} sottoprogetti, quindi non può essere annidato sotto un altro progetto.",
+			"parentBlockedHint_other": "Questo progetto ha {{count}} sottoprogetti, quindi non può essere annidato sotto un altro progetto.",
+			"noParent": "Nessuno (progetto principale)",
+			"parentError": "Impossibile cambiare il progetto padre."
 		},
 		"projectIntegrations": {
 			"pageTitle": "Integrazioni Progetto",
@@ -2098,7 +2108,8 @@
 			"deletedToast": "Progetto eliminato",
 			"deleteProject": "Elimina Progetto",
 			"duplicateProject": "Duplicate project",
-			"saveAsTemplate": "Save as template"
+			"saveAsTemplate": "Save as template",
+			"addSubproject": "Aggiungi sottoprogetto"
 		},
 		"search": {
 			"inputPlaceholder": "Cerca attività, progetti, commenti...",
@@ -2169,6 +2180,11 @@
 				"quickSelectNumber": "Seleziona opzione per numero",
 				"calendarView": "Passa alla vista calendario"
 			}
+		},
+		"projectFamily": {
+			"label": "Gerarchia del progetto",
+			"parent": "Fa parte di {{name}}",
+			"subprojects": "Sottoprogetti"
 		}
 	},
 	"notifications": {
@@ -2837,6 +2853,9 @@
 		},
 		"board": {
 			"reorderFailed": "Could not move task. Please try again."
+		},
+		"dashboard": {
+			"title": "Dashboard"
 		}
 	},
 	"invitations": {
@@ -2989,6 +3008,50 @@
 			},
 			"empty": "Nothing assigned to you",
 			"loadError": "Your tasks couldn't be loaded."
+		},
+		"projectStatus": {
+			"label": "Stato del progetto",
+			"hint": "Si imposta a mano. È separato dall'indicatore automatico di andamento.",
+			"updateError": "Impossibile aggiornare lo stato del progetto.",
+			"in_corso": "In corso",
+			"in_attesa_cliente": "In attesa del cliente",
+			"in_pausa": "In pausa",
+			"chiuso": "Chiuso"
+		},
+		"projectDashboard": {
+			"loadError": "Impossibile caricare la dashboard.",
+			"parentOf": "Fa parte di {{name}}",
+			"aggregateNote_one": "I totali includono questo progetto e {{count}} sottoprogetto.",
+			"aggregateNote_many": "I totali includono questo progetto e {{count}} sottoprogetti.",
+			"aggregateNote_other": "I totali includono questo progetto e {{count}} sottoprogetti.",
+			"health": {
+				"not_started": "Nessuna attività",
+				"on_track": "In linea",
+				"at_risk": "A rischio",
+				"late": "In ritardo",
+				"complete": "Completato"
+			},
+			"stats": {
+				"hours": "Ore lavorate",
+				"done": "Attività completate",
+				"ofTotal_one": "su {{count}} attività",
+				"ofTotal_many": "su {{count}} attività",
+				"ofTotal_other": "su {{count}} attività",
+				"remaining": "Attività rimanenti",
+				"progress": "Avanzamento",
+				"overdue": "In ritardo",
+				"dueSoon_one": "{{count}} in scadenza questa settimana",
+				"dueSoon_many": "{{count}} in scadenza questa settimana",
+				"dueSoon_other": "{{count}} in scadenza questa settimana"
+			},
+			"subprojects": {
+				"title": "Sottoprogetti",
+				"count_one": "{{count}} sottoprogetto",
+				"count_many": "{{count}} sottoprogetti",
+				"count_other": "{{count}} sottoprogetti",
+				"thisProject": "Solo questo progetto",
+				"tasksDone": "{{done}}/{{total}} attività"
+			}
 		}
 	},
 	"team": {
