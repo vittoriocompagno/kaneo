@@ -47,6 +47,7 @@ let projects: { id: string; name: string; slug: string }[] | undefined;
 let columnsError = false;
 let columnsFetching = false;
 const refetchColumns = vi.fn();
+const createTimeEntry = vi.fn(async (input: Record<string, unknown>) => input);
 let projectColumns:
   | { id: string; slug: string; name: string; isFinal: boolean }[]
   | undefined;
@@ -126,6 +127,10 @@ vi.mock("@/hooks/mutations/task/use-create-task", () => ({
   default: () => ({ mutateAsync: createTask }),
 }));
 
+vi.mock("@/hooks/mutations/time-entry/use-create-time-entry", () => ({
+  default: () => ({ mutateAsync: createTimeEntry }),
+}));
+
 vi.mock("@/hooks/mutations/task/use-delete-task", () => ({
   useDeleteTask: () => ({ mutateAsync: deleteTask }),
 }));
@@ -177,8 +182,12 @@ vi.mock("@/store/project", () => ({
   default: () => ({ project: storedProject, setProject }),
 }));
 
+const toastError = vi.fn();
 vi.mock("@/lib/toast", () => ({
-  toast: { error: vi.fn(), success: vi.fn() },
+  toast: {
+    error: (...args: unknown[]) => toastError(...args),
+    success: vi.fn(),
+  },
 }));
 
 vi.mock("react-i18next", () => ({
@@ -668,5 +677,85 @@ describe("CreateTaskModal context isolation", () => {
     expect(createTask).not.toHaveBeenCalled();
     expect(deleteTask).not.toHaveBeenCalled();
     expect(setProject).not.toHaveBeenCalled();
+  });
+});
+
+describe("CreateTaskModal hours", () => {
+  function fillAndSubmit(hours: string, note?: string) {
+    render(<CreateTaskModal open onClose={vi.fn()} projectId="project-1" />, {
+      wrapper: createWrapper(),
+    });
+    fireEvent.change(
+      screen.getByPlaceholderText(
+        "common:modals.createTask.taskTitlePlaceholder",
+      ),
+      { target: { value: "Task with hours" } },
+    );
+    fireEvent.change(
+      screen.getByPlaceholderText("common:modals.createTask.hoursPlaceholder"),
+      { target: { value: hours } },
+    );
+    if (note) {
+      fireEvent.change(
+        screen.getByPlaceholderText(
+          "common:modals.createTask.hoursNotePlaceholder",
+        ),
+        { target: { value: note } },
+      );
+    }
+    fireEvent.submit(document.querySelector("form") as HTMLFormElement);
+  }
+
+  it("logs a finished time entry for the new task, accepting a decimal comma", async () => {
+    const before = Date.now();
+    fillAndSubmit("1,5", " sopralluogo ");
+
+    await vi.waitFor(() => expect(createTimeEntry).toHaveBeenCalledTimes(1));
+    const call = createTimeEntry.mock.calls[0]?.[0] as {
+      taskId: string;
+      description: string;
+      startTime: string;
+      endTime: string;
+    };
+    expect(call.taskId).toBe("task-1");
+    expect(call.description).toBe("sopralluogo");
+    const end = new Date(call.endTime).getTime();
+    expect(end).toBeGreaterThanOrEqual(before);
+    expect(end - new Date(call.startTime).getTime()).toBe(90 * 60 * 1000);
+  });
+
+  it("logs nothing when the hours field is blank", async () => {
+    fillAndSubmit("");
+
+    await vi.waitFor(() => expect(createTask).toHaveBeenCalledTimes(1));
+    expect(createTimeEntry).not.toHaveBeenCalled();
+  });
+
+  it("refuses invalid hours before creating the task", async () => {
+    fillAndSubmit("abc");
+
+    await vi.waitFor(() =>
+      expect(toastError).toHaveBeenCalledWith(
+        "common:modals.createTask.hoursInvalid",
+      ),
+    );
+    expect(createTask).not.toHaveBeenCalled();
+    expect(createTimeEntry).not.toHaveBeenCalled();
+  });
+
+  it("keeps the task and reports it when the time entry fails", async () => {
+    createTimeEntry.mockRejectedValueOnce(new Error("boom"));
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    fillAndSubmit("2");
+
+    await vi.waitFor(() =>
+      expect(toastError).toHaveBeenCalledWith(
+        "common:modals.createTask.hoursSaveError",
+      ),
+    );
+    expect(createTask).toHaveBeenCalledTimes(1);
+    consoleError.mockRestore();
   });
 });

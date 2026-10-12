@@ -3,6 +3,7 @@ import { produce } from "immer";
 import {
   CalendarIcon,
   Check,
+  Clock,
   FolderKanban,
   Plus,
   Search,
@@ -80,6 +81,7 @@ import { getColumnIcon } from "@/lib/column";
 import { getStatusDisplayLabel } from "@/lib/i18n/domain";
 import useCreateLabel from "@/hooks/mutations/label/use-create-label";
 import useCreateTask from "@/hooks/mutations/task/use-create-task";
+import useCreateTimeEntry from "@/hooks/mutations/time-entry/use-create-time-entry";
 import useGetCustomFieldsByProject from "@/hooks/queries/custom-field/use-get-custom-fields-by-project";
 import useGetLabelsByWorkspace from "@/hooks/queries/label/use-get-labels-by-workspace";
 import useGetProjects from "@/hooks/queries/project/use-get-projects";
@@ -92,6 +94,7 @@ import { uploadDraftAsset } from "@/lib/upload-draft-asset";
 import { formatDateMedium } from "@/lib/format";
 import { getInitials } from "@/lib/get-initials";
 import { resolveLabelColor } from "@/lib/label-color";
+import { hoursToRange, parseHours } from "@/lib/parse-hours";
 import { getPriorityIcon } from "@/lib/priority";
 import { toast } from "@/lib/toast";
 import useProjectStore from "@/store/project";
@@ -253,6 +256,8 @@ function CreateTaskModalContent({
   const [assigneeId, setAssigneeId] = useState("");
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
+  const [hours, setHours] = useState("");
+  const [hoursNote, setHoursNote] = useState("");
   const [createMore, setCreateMore] = useState(false);
   const [labels, setLabels] = useState<Label[]>([]);
   const [discardConfirmationOpen, setDiscardConfirmationOpen] = useState(false);
@@ -332,6 +337,7 @@ function CreateTaskModalContent({
   const didSubmitRef = useRef(false);
 
   const { mutateAsync: createTask } = useCreateTask();
+  const { mutateAsync: createTimeEntry } = useCreateTimeEntry();
 
   const { data: rawCustomFields } = useGetCustomFieldsByProject(
     resolvedProjectId,
@@ -407,6 +413,8 @@ function CreateTaskModalContent({
     dueDate ||
     selectedProjectId ||
     labels.length > 0 ||
+    hours.trim() ||
+    hoursNote.trim() ||
     stagedAssetsRef.current.length > 0 ||
     hasCustomFieldChanges,
   );
@@ -532,6 +540,12 @@ function CreateTaskModalContent({
     )
       return;
 
+    const parsedHours = parseHours(hours);
+    if (parsedHours.status === "invalid") {
+      toast.error(t("common:modals.createTask.hoursInvalid"));
+      return;
+    }
+
     submittingRef.current = true;
     setIsSubmitting(true);
     try {
@@ -579,10 +593,27 @@ function CreateTaskModalContent({
         }
       }
 
+      let timeEntryFailed = false;
+      if (parsedHours.status === "ok") {
+        try {
+          await createTimeEntry({
+            taskId: savedTask.id,
+            description: hoursNote.trim(),
+            ...hoursToRange(parsedHours.hours),
+          });
+        } catch (error) {
+          timeEntryFailed = true;
+          console.error("Failed to create time entry:", error);
+        }
+      }
+
       stagedAssetsRef.current = [];
       if (!activeRef.current) return;
       syncTaskIntoProject(savedTask);
       toast.success(t("common:modals.createTask.successCreated"));
+      if (timeEntryFailed) {
+        toast.error(t("common:modals.createTask.hoursSaveError"));
+      }
 
       if (createMore) {
         setTitle("");
@@ -592,6 +623,8 @@ function CreateTaskModalContent({
         setStartDate(undefined);
         setDueDate(undefined);
         setLabels([]);
+        setHours("");
+        setHoursNote("");
         setLabelsStep("select");
         setSearchValue("");
         setSelectedColor("gray");
@@ -1519,6 +1552,36 @@ function CreateTaskModalContent({
                   )}
                 </PopoverContent>
               </Popover>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <label
+                htmlFor="create-task-hours"
+                className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground"
+              >
+                <Clock className="w-3.5 h-3.5" />
+                <span>{t("common:modals.createTask.hours")}</span>
+              </label>
+              <input
+                id="create-task-hours"
+                type="text"
+                inputMode="decimal"
+                autoComplete="off"
+                value={hours}
+                onChange={(e) => setHours(e.target.value)}
+                placeholder={t("common:modals.createTask.hoursPlaceholder")}
+                aria-invalid={parseHours(hours).status === "invalid"}
+                className="h-8 w-24 rounded-md border border-border bg-background px-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring aria-[invalid=true]:border-destructive"
+              />
+              <input
+                type="text"
+                autoComplete="off"
+                value={hoursNote}
+                onChange={(e) => setHoursNote(e.target.value)}
+                placeholder={t("common:modals.createTask.hoursNotePlaceholder")}
+                aria-label={t("common:modals.createTask.hoursNote")}
+                className="h-8 min-w-48 flex-1 rounded-md border border-border bg-background px-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              />
             </div>
           </div>
 

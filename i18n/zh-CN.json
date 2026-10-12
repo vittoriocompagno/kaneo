@@ -177,7 +177,13 @@
 					"rose": "玫红",
 					"crimson": "深红"
 				},
-				"statusLoadError": "项目状态加载失败。"
+				"statusLoadError": "项目状态加载失败。",
+				"hours": "Hours spent",
+				"hoursInvalid": "Enter hours as a positive number, e.g. 1.5",
+				"hoursNote": "Time entry note",
+				"hoursNotePlaceholder": "What you worked on (optional)",
+				"hoursPlaceholder": "e.g. 1.5",
+				"hoursSaveError": "Task created, but the hours could not be saved."
 			}
 		},
 		"boolean": {

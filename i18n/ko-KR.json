@@ -177,7 +177,13 @@
 					"rose": "로즈",
 					"crimson": "크림슨"
 				},
-				"statusLoadError": "Project statuses couldn’t be loaded."
+				"statusLoadError": "Project statuses couldn’t be loaded.",
+				"hours": "Hours spent",
+				"hoursInvalid": "Enter hours as a positive number, e.g. 1.5",
+				"hoursNote": "Time entry note",
+				"hoursNotePlaceholder": "What you worked on (optional)",
+				"hoursPlaceholder": "e.g. 1.5",
+				"hoursSaveError": "Task created, but the hours could not be saved."
 			}
 		},
 		"boolean": {
