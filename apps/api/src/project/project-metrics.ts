@@ -9,6 +9,7 @@ export type ProjectMetrics = {
   dueSoonTasks: number;
   nextDueDate: Date | null;
   trackedSeconds: number;
+  estimatedSeconds: number;
   health: ProjectHealth;
 };
 
@@ -20,6 +21,7 @@ export type MetricsInput = Pick<
   | "dueSoonTasks"
   | "nextDueDate"
   | "trackedSeconds"
+  | "estimatedSeconds"
 >;
 
 export const EMPTY_METRICS_INPUT: MetricsInput = {
@@ -29,6 +31,7 @@ export const EMPTY_METRICS_INPUT: MetricsInput = {
   dueSoonTasks: 0,
   nextDueDate: null,
   trackedSeconds: 0,
+  estimatedSeconds: 0,
 };
 
 export function toProjectMetrics(input: MetricsInput): ProjectMetrics {
@@ -51,6 +54,7 @@ export function sumMetricsInputs(inputs: MetricsInput[]): MetricsInput {
       overdueTasks: sum.overdueTasks + item.overdueTasks,
       dueSoonTasks: sum.dueSoonTasks + item.dueSoonTasks,
       trackedSeconds: sum.trackedSeconds + item.trackedSeconds,
+      estimatedSeconds: sum.estimatedSeconds + item.estimatedSeconds,
       nextDueDate:
         sum.nextDueDate && item.nextDueDate
           ? sum.nextDueDate < item.nextDueDate

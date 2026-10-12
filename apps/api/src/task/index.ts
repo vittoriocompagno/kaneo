@@ -60,6 +60,7 @@ import updateTask from "./controllers/update-task";
 import updateTaskAssignee from "./controllers/update-task-assignee";
 import updateTaskDescription from "./controllers/update-task-description";
 import updateTaskDueDate from "./controllers/update-task-due-date";
+import updateTaskEstimate from "./controllers/update-task-estimate";
 import updateTaskPriority from "./controllers/update-task-priority";
 import updateTaskStatus from "./controllers/update-task-status";
 import updateTaskTitle from "./controllers/update-task-title";
@@ -104,6 +105,7 @@ import {
   updateAssigneeBody,
   updateDescriptionBody,
   updateDueDateBody,
+  updateEstimateBody,
   updatePriorityBody,
   updateStatusBody,
   updateTaskBody,
@@ -570,6 +572,35 @@ const updateTaskPriorityRoute = createRoute({
   },
 });
 
+const updateTaskEstimateRoute = createRoute({
+  method: "put",
+  operationId: "updateTaskEstimate",
+  path: "/estimate/{id}",
+  tags: ["Tasks"],
+  summary: "Update task estimate",
+  description:
+    "Set a task's estimated work in whole minutes, or send null to clear it.",
+  middleware: [
+    workspaceAccess.fromTask(),
+    requireWorkspacePermission({ task: ["update"] }),
+    requireEntitlement,
+  ] as const,
+  request: {
+    params: taskParam,
+    body: {
+      required: true,
+      content: { "application/json": { schema: updateEstimateBody } },
+    },
+  },
+  responses: {
+    200: jsonResponse("The updated task", taskSchema),
+    400: errorResponse("Invalid estimate, or unknown task"),
+    403: errorResponse(
+      "No workspace access, or missing task:update permission",
+    ),
+  },
+});
+
 const updateTaskAssigneeRoute = createRoute({
   method: "put",
   operationId: "updateTaskAssignee",
@@ -885,6 +916,7 @@ const task = apiRouter<BaseVariables & { workspaceId: string }>()
       userId,
       customFields,
       draftAssetIds,
+      estimatedMinutes,
     } = c.req.valid("json");
 
     const parsedStartDate =
@@ -910,6 +942,7 @@ const task = apiRouter<BaseVariables & { workspaceId: string }>()
       status,
       customFields,
       draftAssetIds,
+      estimatedMinutes,
     });
 
     return c.json(task, 200);
@@ -971,6 +1004,7 @@ const task = apiRouter<BaseVariables & { workspaceId: string }>()
       projectId,
       position,
       userId,
+      estimatedMinutes,
     } = c.req.valid("json");
 
     const currentUserId = c.get("userId");
@@ -998,6 +1032,7 @@ const task = apiRouter<BaseVariables & { workspaceId: string }>()
       position,
       userId,
       currentUserId,
+      estimatedMinutes,
     );
 
     return c.json(task, 200);
@@ -1041,6 +1076,14 @@ const task = apiRouter<BaseVariables & { workspaceId: string }>()
     const currentUserId = c.get("userId");
 
     const task = await updateTaskPriority({ id, priority, currentUserId });
+
+    return c.json(task, 200);
+  })
+  .openapi(updateTaskEstimateRoute, async (c) => {
+    const { id } = c.req.valid("param");
+    const { estimatedMinutes } = c.req.valid("json");
+
+    const task = await updateTaskEstimate({ id, estimatedMinutes });
 
     return c.json(task, 200);
   })

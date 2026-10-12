@@ -141,6 +141,10 @@ export const projectMetricsSchema = z
       description:
         "Sum of the finished time entries on the project's tasks, in seconds. Running timers count once stopped.",
     }),
+    estimatedSeconds: z.number().openapi({
+      description:
+        "Sum of the estimates on the project's tasks, in seconds. Tasks without an estimate count as zero.",
+    }),
     health: projectHealthSchema,
   })
   .openapi("ProjectMetrics");

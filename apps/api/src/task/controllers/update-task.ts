@@ -27,6 +27,7 @@ async function updateTask(
   position: number,
   userId?: string,
   currentUserId?: string,
+  estimatedMinutes?: number | null,
 ) {
   assertTaskPosition(position);
 
@@ -128,6 +129,8 @@ async function updateTask(
         priority,
         position,
         userId: normalizedUserId ?? null,
+        // undefined leaves the column alone, null clears it.
+        estimatedMinutes,
       })
       .where(and(eq(taskTable.id, id), eq(taskTable.projectId, projectId)))
       .returning({

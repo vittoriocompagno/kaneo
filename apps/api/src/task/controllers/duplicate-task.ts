@@ -296,6 +296,7 @@ async function duplicateTask({
           dueDate: sourceTask.dueDate,
           description,
           priority: sourceTask.priority,
+          estimatedMinutes: sourceTask.estimatedMinutes,
           number: taskNumber,
           position: nextPosition,
         })

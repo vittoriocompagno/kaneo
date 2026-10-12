@@ -145,6 +145,12 @@
             ],
             "format": "date-time"
           },
+          "estimatedMinutes": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
           "position": {
             "type": [
               "number",
@@ -984,6 +990,10 @@
             "type": "number",
             "description": "Sum of the finished time entries on the project's tasks, in seconds. Running timers count once stopped."
           },
+          "estimatedSeconds": {
+            "type": "number",
+            "description": "Sum of the estimates on the project's tasks, in seconds. Tasks without an estimate count as zero."
+          },
           "health": {
             "type": "string",
             "enum": [
@@ -1005,6 +1015,7 @@
           "dueSoonTasks",
           "nextDueDate",
           "trackedSeconds",
+          "estimatedSeconds",
           "health"
         ],
         "description": "This project plus every subproject the caller can open. Equals own for a project without subprojects."
@@ -1337,6 +1348,13 @@
               "null"
             ],
             "format": "date-time"
+          },
+          "estimatedMinutes": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "Estimated work in whole minutes, null when not set."
           },
           "createdAt": {
             "type": "string",
@@ -10583,6 +10601,15 @@
                         "value"
                       ]
                     }
+                  },
+                  "estimatedMinutes": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 0,
+                    "maximum": 60000,
+                    "description": "Estimated work in whole minutes. Omit or null for none."
                   }
                 },
                 "required": [
@@ -10967,6 +10994,15 @@
                   },
                   "userId": {
                     "type": "string"
+                  },
+                  "estimatedMinutes": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 0,
+                    "maximum": 60000,
+                    "description": "Estimated work in whole minutes. Omit to keep the current estimate, null to clear it."
                   }
                 },
                 "required": [
@@ -11473,6 +11509,85 @@
           },
           "400": {
             "description": "Invalid priority, or unknown task",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "No workspace access, or missing task:update permission",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/task/estimate/{id}": {
+      "put": {
+        "operationId": "updateTaskEstimate",
+        "tags": [
+          "Tasks"
+        ],
+        "summary": "Update task estimate",
+        "description": "Set a task's estimated work in whole minutes, or send null to clear it.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "estimatedMinutes": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 0,
+                    "maximum": 60000,
+                    "description": "Estimated work in whole minutes. Null clears the estimate."
+                  }
+                },
+                "required": [
+                  "estimatedMinutes"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated task",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Task"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid estimate, or unknown task",
             "content": {
               "text/plain": {
                 "schema": {

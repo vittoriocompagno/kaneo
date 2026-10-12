@@ -73,6 +73,10 @@ export const bulkUpdateBody = z.object({
   }),
 });
 
+export const MAX_ESTIMATED_MINUTES = 1000 * 60;
+
+const estimatedMinutes = z.number().int().min(0).max(MAX_ESTIMATED_MINUTES);
+
 export const createTaskBody = z.object({
   title: z.string(),
   description: z.string(),
@@ -85,6 +89,9 @@ export const createTaskBody = z.object({
   customFields: z
     .array(z.object({ fieldId: z.string(), value: z.string() }))
     .optional(),
+  estimatedMinutes: estimatedMinutes.nullish().openapi({
+    description: "Estimated work in whole minutes. Omit or null for none.",
+  }),
 });
 
 export const updateTaskBody = z.object({
@@ -100,6 +107,10 @@ export const updateTaskBody = z.object({
   projectId: z.string(),
   position: z.number().int().min(0).max(MAX_TASK_POSITION),
   userId: z.string().optional(),
+  estimatedMinutes: estimatedMinutes.nullish().openapi({
+    description:
+      "Estimated work in whole minutes. Omit to keep the current estimate, null to clear it.",
+  }),
 });
 
 export const moveTaskBody = z.object({
@@ -127,6 +138,11 @@ export const updateStatusBody = z.object({ status: z.string() });
 export const updatePriorityBody = z.object({ priority });
 export const updateAssigneeBody = z.object({
   userId: z.string().nullable().openapi({ description: "Null unassigns." }),
+});
+export const updateEstimateBody = z.object({
+  estimatedMinutes: estimatedMinutes.nullable().openapi({
+    description: "Estimated work in whole minutes. Null clears the estimate.",
+  }),
 });
 export const updateDueDateBody = z.object({ dueDate: z.string().optional() });
 export const updateTitleBody = z.object({ title: z.string() });

@@ -28,6 +28,9 @@ export const taskSchema = z
     priority: z.string().openapi({ description: priorityDescription }),
     startDate: nullableResponseTimestamp,
     dueDate: nullableResponseTimestamp,
+    estimatedMinutes: z.number().nullable().optional().openapi({
+      description: "Estimated work in whole minutes, null when not set.",
+    }),
     createdAt: responseTimestamp,
     customFields: z
       .array(z.object({ fieldId: z.string(), value: z.string() }))
@@ -106,6 +109,7 @@ export const boardTaskSchema = z
     priority: z.string().openapi({ description: priorityDescription }),
     startDate: nullableResponseTimestamp,
     dueDate: nullableResponseTimestamp,
+    estimatedMinutes: z.number().nullable().optional(),
     position: z.number().nullable(),
     createdAt: responseTimestamp,
     userId: z.string().nullable(),

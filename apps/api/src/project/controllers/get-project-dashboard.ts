@@ -26,6 +26,7 @@ async function loadMetricsInputs(projectIds: string[]) {
         overdueTasks: overdueTaskCount,
         dueSoonTasks: dueSoonTaskCount,
         nextDueDate: nextOpenDueDate,
+        estimatedMinutes: sum(taskTable.estimatedMinutes),
       })
       .from(taskTable)
       .where(inArray(taskTable.projectId, projectIds))
@@ -52,6 +53,8 @@ async function loadMetricsInputs(projectIds: string[]) {
       dueSoonTasks: Number(row.dueSoonTasks),
       nextDueDate: row.nextDueDate ?? null,
       trackedSeconds: 0,
+      // Tasks without an estimate add nothing.
+      estimatedSeconds: Number(row.estimatedMinutes ?? 0) * 60,
     });
   }
   for (const row of timeRows) {

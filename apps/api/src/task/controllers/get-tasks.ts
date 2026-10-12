@@ -186,6 +186,7 @@ async function getTasksPage(
     priority: taskTable.priority,
     startDate: taskTable.startDate,
     dueDate: taskTable.dueDate,
+    estimatedMinutes: taskTable.estimatedMinutes,
     position: taskTable.position,
     createdAt: taskTable.createdAt,
     userId: taskTable.userId,

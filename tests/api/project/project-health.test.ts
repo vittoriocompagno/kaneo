@@ -76,6 +76,7 @@ describe("project metrics", () => {
         overdueTasks: 1,
         dueSoonTasks: 0,
         trackedSeconds: 60,
+        estimatedSeconds: 600,
         nextDueDate: late,
       },
       {
@@ -84,6 +85,7 @@ describe("project metrics", () => {
         overdueTasks: 0,
         dueSoonTasks: 1,
         trackedSeconds: 40,
+        estimatedSeconds: 0,
         nextDueDate: early,
       },
       EMPTY_METRICS_INPUT,
@@ -94,6 +96,7 @@ describe("project metrics", () => {
       overdueTasks: 1,
       dueSoonTasks: 1,
       trackedSeconds: 100,
+      estimatedSeconds: 600,
       nextDueDate: early,
     });
     expect(toProjectMetrics(sum).progress).toBe(11);

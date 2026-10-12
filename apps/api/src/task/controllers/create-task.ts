@@ -57,6 +57,7 @@ async function createTask({
   priority,
   customFields,
   draftAssetIds,
+  estimatedMinutes,
 }: {
   projectId: string;
   currentUserId: string;
@@ -69,6 +70,7 @@ async function createTask({
   priority?: string;
   customFields?: CustomFieldInput[];
   draftAssetIds?: string[];
+  estimatedMinutes?: number | null;
 }) {
   const resolvedStatus = status || "to-do";
   const resolvedPriority = priority || "no-priority";
@@ -153,6 +155,7 @@ async function createTask({
         dueDate: dueDate || null,
         description: description || "",
         priority: resolvedPriority,
+        estimatedMinutes: estimatedMinutes ?? null,
         number: taskNumber,
         position: nextPosition,
       })
