@@ -4,6 +4,8 @@ import type Task from "@/types/task";
 import TaskCardContextMenuContent from "./task-card-context-menu-content";
 
 const duplicateTask = vi.fn();
+const updateTaskStatus = vi.fn();
+const promptDoneHours = vi.fn();
 const canCreateTasks = vi.fn(() => true);
 vi.mock("@/hooks/mutations/task/use-duplicate-task", () => ({
   useDuplicateTask: () => ({ mutate: duplicateTask }),
@@ -50,14 +52,23 @@ vi.mock("@/components/ui/context-menu", () => ({
   }): React.JSX.Element => <div>{children}</div>,
   ContextMenuCheckboxItem: ({
     children,
+    onCheckedChange,
   }: {
     children: React.ReactNode;
-  }): React.JSX.Element => <div>{children}</div>,
+    onCheckedChange?: () => void;
+  }): React.JSX.Element => (
+    <button type="button" onClick={onCheckedChange}>
+      {children}
+    </button>
+  ),
 }));
 
 vi.mock("@/hooks/queries/column/use-get-columns", () => ({
   useGetColumns: () => ({
-    data: [],
+    data: [
+      { slug: "to-do", name: "Backlog col", icon: null, isFinal: false },
+      { slug: "done", name: "Finished col", icon: null, isFinal: true },
+    ],
   }),
 }));
 
@@ -96,7 +107,11 @@ vi.mock("@/hooks/mutations/task/use-update-task-due-date", () => ({
 }));
 
 vi.mock("@/hooks/mutations/task/use-update-task-status", () => ({
-  useUpdateTaskStatus: () => ({ mutateAsync: vi.fn() }),
+  useUpdateTaskStatus: () => ({ mutateAsync: updateTaskStatus }),
+}));
+
+vi.mock("@/hooks/use-done-hours-prompt", () => ({
+  useDoneHoursPrompt: () => promptDoneHours,
 }));
 
 vi.mock("@/hooks/mutations/task/use-update-task-status-priority", () => ({
@@ -196,4 +211,18 @@ it("hides duplication without task-create permission", () => {
   canCreateTasks.mockReturnValue(false);
   renderTask(task);
   expect(screen.queryByText("tasks:actions.duplicate")).toBeNull();
+});
+it("asks for hours after a status is picked from the menu", async () => {
+  renderTask(task);
+  fireEvent.click(screen.getByRole("button", { name: "Finished col" }));
+
+  await vi.waitFor(() => expect(promptDoneHours).toHaveBeenCalledTimes(1));
+  expect(updateTaskStatus).toHaveBeenCalledWith({ ...task, status: "done" });
+  expect(promptDoneHours).toHaveBeenCalledWith([
+    expect.objectContaining({
+      task,
+      fromStatus: "to-do",
+      toStatus: "done",
+    }),
+  ]);
 });

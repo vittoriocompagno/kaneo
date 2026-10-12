@@ -27,6 +27,7 @@ const mocks = vi.hoisted(() => ({
   getRelations: vi.fn(),
   fetchColumns: vi.fn(),
   updateStatus: vi.fn(),
+  promptDoneHours: vi.fn(),
   navigate: vi.fn(),
   toastError: vi.fn(),
 }));
@@ -51,6 +52,9 @@ vi.mock("@/hooks/mutations/task/use-delete-task", () => ({
 }));
 vi.mock("@/hooks/mutations/task/use-update-task-status", () => ({
   useUpdateTaskStatus: () => ({ mutateAsync: mocks.updateStatus }),
+}));
+vi.mock("@/hooks/use-done-hours-prompt", () => ({
+  useDoneHoursPrompt: () => mocks.promptDoneHours,
 }));
 vi.mock("@/hooks/queries/column/use-get-columns", () => ({
   useGetColumns: () => mocks.getColumns(),
@@ -293,6 +297,16 @@ describe("cross-project subtask progress", () => {
         ),
       );
       expect(mocks.fetchColumns).toHaveBeenCalledWith("child-project");
+      // The hook decides whether the move ends in a final column.
+      await waitFor(() =>
+        expect(mocks.promptDoneHours).toHaveBeenCalledWith([
+          expect.objectContaining({
+            task: expect.objectContaining({ id: "child" }),
+            fromStatus: completed ? "shipped" : "queued",
+            toStatus: completed ? "queued" : "shipped",
+          }),
+        ]),
+      );
     },
   );
   it("does not invent a status when the workflow has no final column", async () => {

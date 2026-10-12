@@ -10,6 +10,7 @@ import {
 import { ShortcutNumber } from "@/components/ui/shortcut-number";
 import { useUpdateTaskStatus } from "@/hooks/mutations/task/use-update-task-status";
 import { useGetColumns } from "@/hooks/queries/column/use-get-columns";
+import { useDoneHoursPrompt } from "@/hooks/use-done-hours-prompt";
 import { useNumberedShortcuts } from "@/hooks/use-numbered-shortcuts";
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 import { getColumnIcon } from "@/lib/column";
@@ -38,6 +39,7 @@ export default function SubtaskStatusPopover({
     isFinal: col.isFinal,
   }));
   const { mutateAsync: updateTaskStatus } = useUpdateTaskStatus();
+  const promptDoneHours = useDoneHoursPrompt();
   const { canUpdateTasks } = useWorkspacePermission();
   const canEdit = canUpdateTasks();
 
@@ -57,6 +59,14 @@ export default function SubtaskStatusPopover({
           ),
         );
         setOpen(false);
+        void promptDoneHours(
+          tasks.map((task) => ({
+            task,
+            fromStatus: task.status,
+            toStatus: newStatus,
+            toColumns: columns,
+          })),
+        );
       } catch (error) {
         toast.error(
           error instanceof Error
@@ -65,7 +75,7 @@ export default function SubtaskStatusPopover({
         );
       }
     },
-    [t, tasks, updateTaskStatus],
+    [columns, promptDoneHours, t, tasks, updateTaskStatus],
   );
 
   const shortcutOptions = useMemo(

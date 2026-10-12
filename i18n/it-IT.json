@@ -161,12 +161,9 @@
 				"labelCreated": "Etichetta creata",
 				"labelCreateError": "Creazione etichetta fallita",
 				"createMore": "Crea altro",
-				"hours": "Ore impiegate",
-				"hoursPlaceholder": "es. 1,5",
-				"hoursNote": "Nota sulle ore",
-				"hoursNotePlaceholder": "Cosa hai fatto (facoltativo)",
-				"hoursInvalid": "Inserisci le ore come numero positivo, es. 1,5",
-				"hoursSaveError": "Attività creata, ma le ore non sono state salvate.",
+				"estimate": "Ore stimate",
+				"estimatePlaceholder": "es. 1,5",
+				"estimateInvalid": "Inserisci la stima come numero positivo di ore, es. 1,5",
 				"createButton": "Crea Attività",
 				"discardTitle": "Scartare l'attività?",
 				"discardDescription": "I dettagli non salvati dell'attività andranno persi.",
@@ -2586,7 +2583,9 @@
 			"taskBranchCopied": "Nome del branch copiato",
 			"start": "Inizio",
 			"startDate": "Data inizio",
-			"noDate": "Nessuna data"
+			"noDate": "Nessuna data",
+			"estimate": "Ore stimate",
+			"estimateValue": "Stimate: {{value}}"
 		},
 		"move": {
 			"title": "Sposta attività",
@@ -2641,6 +2640,13 @@
 					"rose": "Rosa",
 					"crimson": "Cremisi"
 				}
+			},
+			"estimate": {
+				"label": "Ore stimate",
+				"placeholder": "es. 1,5",
+				"clear": "Rimuovi stima",
+				"updateError": "Impossibile aggiornare la stima",
+				"save": "Salva"
 			}
 		},
 		"backlog": {
@@ -2862,6 +2868,21 @@
 		},
 		"dashboard": {
 			"title": "Dashboard"
+		},
+		"doneHours": {
+			"title": "Ore impiegate",
+			"description": "Quanto tempo è servito per \"{{title}}\"?",
+			"hoursLabel": "Ore impiegate",
+			"hoursPlaceholder": "es. 1,5",
+			"noteLabel": "Nota",
+			"notePlaceholder": "Cosa hai fatto (facoltativo)",
+			"estimatedHint": "Stimate: {{value}}",
+			"invalid": "Inserisci le ore come numero positivo, es. 1,5",
+			"saveError": "Impossibile salvare le ore. Riprova oppure salta.",
+			"save": "Salva",
+			"skip": "Salta",
+			"skipAll": "Salta tutte",
+			"moreWaiting": "Altre {{waiting}} dopo questa"
 		}
 	},
 	"invitations": {
@@ -3048,7 +3069,9 @@
 				"overdue": "In ritardo",
 				"dueSoon_one": "{{count}} in scadenza questa settimana",
 				"dueSoon_many": "{{count}} in scadenza questa settimana",
-				"dueSoon_other": "{{count}} in scadenza questa settimana"
+				"dueSoon_other": "{{count}} in scadenza questa settimana",
+				"estimatedValue": "Stimate: {{value}}",
+				"estimated": "Ore stimate"
 			},
 			"subprojects": {
 				"title": "Sottoprogetti",

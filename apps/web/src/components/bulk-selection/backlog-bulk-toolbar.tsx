@@ -55,6 +55,8 @@ import { resolveLabelColor } from "@/lib/label-color";
 import { getPriorityIcon } from "@/lib/priority";
 import { toast } from "@/lib/toast";
 import useBacklogBulkSelectionStore from "@/store/backlog-bulk-selection";
+import { useDoneHoursPrompt } from "@/hooks/use-done-hours-prompt";
+import { doneMovesForStatus } from "@/lib/done-hours";
 import useProjectStore from "@/store/project";
 import { Button } from "../ui/button";
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from "../ui/toolbar";
@@ -88,6 +90,7 @@ function BacklogBulkToolbar() {
     [],
   );
   const { project } = useProjectStore();
+  const promptDoneHours = useDoneHoursPrompt();
   const {
     bulkMoveToBoard,
     bulkDelete,
@@ -155,10 +158,10 @@ function BacklogBulkToolbar() {
   const handleMoveToBoard = useCallback(
     async (status: string) => {
       try {
-        await bulkMoveToBoard({
-          taskIds: Array.from(selectedTaskIds),
-          status,
-        });
+        const taskIds = Array.from(selectedTaskIds);
+        const doneMoves = doneMovesForStatus(project, taskIds, status);
+        await bulkMoveToBoard({ taskIds, status });
+        void promptDoneHours(doneMoves);
         toast.success(
           t("tasks:bulk.moveToBoardSuccess", { count: selectedCount }),
         );
@@ -167,7 +170,15 @@ function BacklogBulkToolbar() {
         toast.error(t("tasks:bulk.moveToBoardError"));
       }
     },
-    [bulkMoveToBoard, selectedTaskIds, selectedCount, clearSelection, t],
+    [
+      bulkMoveToBoard,
+      project,
+      promptDoneHours,
+      selectedTaskIds,
+      selectedCount,
+      clearSelection,
+      t,
+    ],
   );
 
   const handleBulkDelete = useCallback(async () => {

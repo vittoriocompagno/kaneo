@@ -18,6 +18,7 @@ async function createTask(
   priority: CreateTaskRequest["priority"],
   customFields?: { fieldId: string; value: string }[],
   draftAssetIds?: string[],
+  estimatedMinutes?: number | null,
 ) {
   if (!projectId) {
     throw new Error("No project selected for task creation");
@@ -34,6 +35,7 @@ async function createTask(
       priority,
       customFields,
       draftAssetIds,
+      ...(estimatedMinutes != null ? { estimatedMinutes } : {}),
     },
     param: { projectId },
   });

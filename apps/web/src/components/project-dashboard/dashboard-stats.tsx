@@ -44,6 +44,13 @@ export function DashboardStats({ metrics }: { metrics: Metrics }) {
       <Stat
         label={t("workspace:projectDashboard.stats.hours")}
         value={formatTrackedTime(metrics.trackedSeconds)}
+        detail={
+          metrics.estimatedSeconds > 0
+            ? t("workspace:projectDashboard.stats.estimatedValue", {
+                value: formatTrackedTime(metrics.estimatedSeconds),
+              })
+            : undefined
+        }
       />
       <Stat
         label={t("workspace:projectDashboard.stats.done")}

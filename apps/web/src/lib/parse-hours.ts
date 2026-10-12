@@ -27,3 +27,12 @@ export function hoursToRange(hours: number, now: Date = new Date()) {
     endTime: now.toISOString(),
   };
 }
+
+// Estimates are stored as whole minutes; never round a real estimate down to 0.
+export function hoursToMinutes(hours: number) {
+  return Math.max(1, Math.round(hours * 60));
+}
+
+export function minutesToHoursInput(minutes: number) {
+  return String(Math.round((minutes / 60) * 100) / 100).replace(".", ",");
+}

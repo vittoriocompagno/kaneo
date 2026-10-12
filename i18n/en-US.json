@@ -168,12 +168,9 @@
 				"labelCreated": "Label created",
 				"labelCreateError": "Failed to create label",
 				"createMore": "Create more",
-				"hours": "Hours spent",
-				"hoursPlaceholder": "e.g. 1.5",
-				"hoursNote": "Time entry note",
-				"hoursNotePlaceholder": "What you worked on (optional)",
-				"hoursInvalid": "Enter hours as a positive number, e.g. 1.5",
-				"hoursSaveError": "Task created, but the hours could not be saved.",
+				"estimate": "Estimated hours",
+				"estimatePlaceholder": "e.g. 1.5",
+				"estimateInvalid": "Enter the estimate as a positive number of hours, e.g. 1.5",
 				"createButton": "Create Task",
 				"discardTitle": "Discard task?",
 				"discardDescription": "Your unsaved task details will be lost.",
@@ -2571,7 +2568,9 @@
 			"taskBranchCopied": "Copied branch name",
 			"start": "Start",
 			"startDate": "Start date",
-			"noDate": "No date"
+			"noDate": "No date",
+			"estimate": "Estimated hours",
+			"estimateValue": "Estimated: {{value}}"
 		},
 		"move": {
 			"title": "Move task",
@@ -2626,6 +2625,13 @@
 					"rose": "Rose",
 					"crimson": "Crimson"
 				}
+			},
+			"estimate": {
+				"label": "Estimated hours",
+				"placeholder": "e.g. 1.5",
+				"clear": "Clear estimate",
+				"updateError": "Could not update the estimate",
+				"save": "Save"
 			}
 		},
 		"backlog": {
@@ -2845,6 +2851,21 @@
 		},
 		"dashboard": {
 			"title": "Dashboard"
+		},
+		"doneHours": {
+			"title": "Hours spent",
+			"description": "How long did \"{{title}}\" take?",
+			"hoursLabel": "Hours spent",
+			"hoursPlaceholder": "e.g. 1.5",
+			"noteLabel": "Note",
+			"notePlaceholder": "What you worked on (optional)",
+			"estimatedHint": "Estimated: {{value}}",
+			"invalid": "Enter hours as a positive number, e.g. 1.5",
+			"saveError": "The hours could not be saved. Try again or skip.",
+			"save": "Save",
+			"skip": "Skip",
+			"skipAll": "Skip all",
+			"moreWaiting": "{{waiting}} more after this one"
 		}
 	},
 	"invitations": {
@@ -3024,7 +3045,9 @@
 				"progress": "Progress",
 				"overdue": "Overdue",
 				"dueSoon_one": "{{count}} due this week",
-				"dueSoon_other": "{{count}} due this week"
+				"dueSoon_other": "{{count}} due this week",
+				"estimatedValue": "Estimated: {{value}}",
+				"estimated": "Estimated hours"
 			},
 			"subprojects": {
 				"title": "Subprojects",

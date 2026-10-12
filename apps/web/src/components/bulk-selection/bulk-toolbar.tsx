@@ -47,6 +47,8 @@ import { getPriorityLabel } from "@/lib/i18n/domain";
 import { resolveLabelColor } from "@/lib/label-color";
 import { getPriorityIcon } from "@/lib/priority";
 import { toast } from "@/lib/toast";
+import { useDoneHoursPrompt } from "@/hooks/use-done-hours-prompt";
+import { doneMovesForStatus } from "@/lib/done-hours";
 import useBulkSelectionStore from "@/store/bulk-selection";
 import useProjectStore from "@/store/project";
 import { Button } from "../ui/button";
@@ -81,6 +83,7 @@ function BulkToolbar() {
     [],
   );
   const { project } = useProjectStore();
+  const promptDoneHours = useDoneHoursPrompt();
   const {
     bulkMoveToBacklog,
     bulkDelete,
@@ -187,10 +190,10 @@ function BulkToolbar() {
   const handleBulkChangeStatus = useCallback(
     async (status: string) => {
       try {
-        await bulkChangeStatus({
-          taskIds: Array.from(selectedTaskIds),
-          status,
-        });
+        const taskIds = Array.from(selectedTaskIds);
+        const doneMoves = doneMovesForStatus(project, taskIds, status);
+        await bulkChangeStatus({ taskIds, status });
+        void promptDoneHours(doneMoves);
         toast.success(t("tasks:bulk.updateSuccess", { count: selectedCount }));
         clearSelection();
         setIsActionsOpen(false);
@@ -198,7 +201,15 @@ function BulkToolbar() {
         toast.error(t("tasks:bulk.updateError"));
       }
     },
-    [bulkChangeStatus, selectedTaskIds, selectedCount, clearSelection, t],
+    [
+      bulkChangeStatus,
+      project,
+      promptDoneHours,
+      selectedTaskIds,
+      selectedCount,
+      clearSelection,
+      t,
+    ],
   );
 
   const handleBulkAssign = useCallback(

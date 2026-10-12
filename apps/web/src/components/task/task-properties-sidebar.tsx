@@ -38,6 +38,7 @@ import { toast } from "@/lib/toast";
 import TaskActions from "./task-actions";
 import TaskAssigneePopover from "./task-assignee-popover";
 import TaskDueDatePopover from "./task-due-date-popover";
+import TaskEstimatePopover from "./task-estimate-popover";
 import TaskLabelsPopover from "./task-labels-popover";
 import TaskPriorityPopover from "./task-priority-popover";
 import TaskStartDatePopover from "./task-start-date-popover";
@@ -306,6 +307,7 @@ export default function TaskPropertiesSidebar({
                   </Button>
                 </TaskDueDatePopover>
               )}
+              {task && <TaskEstimatePopover task={task} />}
             </div>
           </div>
         )}
@@ -455,6 +457,7 @@ export default function TaskPropertiesSidebar({
                     </Button>
                   </TaskDueDatePopover>
                 )}
+                {task && <TaskEstimatePopover task={task} />}
               </div>
             </div>
 
@@ -604,6 +607,7 @@ export default function TaskPropertiesSidebar({
                     </Button>
                   </TaskDueDatePopover>
                 )}
+                {task && <TaskEstimatePopover task={task} className="w-full" />}
               </div>
             </div>
           </>

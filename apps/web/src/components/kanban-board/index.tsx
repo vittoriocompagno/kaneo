@@ -19,6 +19,8 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
+import { doneMovesFromReorder } from "@/lib/done-hours";
+import { useDoneHoursPrompt } from "@/hooks/use-done-hours-prompt";
 import reorderTasks, { type TaskReorder } from "@/fetchers/task/reorder-tasks";
 import { toast } from "@/lib/toast";
 import { useTranslation } from "react-i18next";
@@ -69,6 +71,7 @@ function KanbanBoard({
   const [sortHintColumnId, setSortHintColumnId] = useState<string | null>(null);
   const dragPreview = useDragPreview(project);
   const { t } = useTranslation();
+  const promptDoneHours = useDoneHoursPrompt();
   const { mutate: reorder, isPending: isReordering } = useMutation({
     mutationFn: ({
       previousBoard: _previousBoard,
@@ -81,6 +84,9 @@ function KanbanBoard({
         invalidateMyWork(queryClient);
         void queryClient.invalidateQueries({ queryKey: ["projects"] });
       }
+      void promptDoneHours(
+        doneMovesFromReorder(variables.previousBoard, variables.tasks),
+      );
       void queryClient.invalidateQueries({
         queryKey: ["tasks", variables.projectId],
       });

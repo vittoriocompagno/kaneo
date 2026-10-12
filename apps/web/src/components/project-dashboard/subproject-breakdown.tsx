@@ -29,7 +29,7 @@ function Row({ row, workspaceId }: { row: BreakdownRow; workspaceId: string }) {
       <Link
         to="/dashboard/workspace/$workspaceId/project/$projectId/dashboard"
         params={{ workspaceId, projectId: row.id }}
-        className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 rounded-lg border border-border p-3.5 outline-none transition-colors hover:bg-accent/40 focus-visible:ring-2 focus-visible:ring-ring sm:grid-cols-[minmax(0,1fr)_7rem_5rem_5rem_auto]"
+        className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 rounded-lg border border-border p-3.5 outline-none transition-colors hover:bg-accent/40 focus-visible:ring-2 focus-visible:ring-ring sm:grid-cols-[minmax(0,1fr)_7rem_5rem_8rem_auto]"
       >
         <span className="flex min-w-0 items-center gap-2">
           <Icon
@@ -73,6 +73,15 @@ function Row({ row, workspaceId }: { row: BreakdownRow; workspaceId: string }) {
         </span>
         <span className="text-muted-foreground text-xs tabular-nums max-sm:hidden">
           {formatTrackedTime(metrics.trackedSeconds)}
+          {metrics.estimatedSeconds > 0 && (
+            <span
+              className="text-muted-foreground/70"
+              title={t("workspace:projectDashboard.stats.estimated")}
+            >
+              {" / "}
+              {formatTrackedTime(metrics.estimatedSeconds)}
+            </span>
+          )}
         </span>
         <ProjectHealthBadge health={metrics.health} />
       </Link>

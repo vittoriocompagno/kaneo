@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useDoneHoursPrompt } from "@/hooks/use-done-hours-prompt";
 import { useMoveTask } from "@/hooks/mutations/task/use-move-task";
 import useGetProjects from "@/hooks/queries/project/use-get-projects";
 import { useGetTasks } from "@/hooks/queries/task/use-get-tasks";
@@ -39,6 +40,7 @@ export default function TaskMovePopover({
   const [selectedStatus, setSelectedStatus] = useState("");
   const { data: projects = [] } = useGetProjects({ workspaceId });
   const { mutateAsync: moveTask, isPending: isMovePending } = useMoveTask();
+  const promptDoneHours = useDoneHoursPrompt();
   const destinationProjectId = selectedProjectId || "";
   const {
     data: destinationProject,
@@ -106,6 +108,15 @@ export default function TaskMovePopover({
       });
 
       setOpen(false);
+      void promptDoneHours([
+        {
+          task: { ...task, projectId: result.task.projectId },
+          fromStatus: task.status,
+          toStatus: effectiveStatus,
+          fromProjectId: task.projectId,
+          toProjectId: result.task.projectId,
+        },
+      ]);
       startTransition(() => {
         navigate({
           to: "/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId",

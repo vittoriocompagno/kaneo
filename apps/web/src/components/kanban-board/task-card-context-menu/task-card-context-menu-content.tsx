@@ -18,6 +18,7 @@ import { useUpdateTask } from "@/hooks/mutations/task/use-update-task";
 import { useUpdateTaskAssignee } from "@/hooks/mutations/task/use-update-task-assignee";
 import { useUpdateTaskDescription } from "@/hooks/mutations/task/use-update-task-description";
 import { useUpdateTaskDueDate } from "@/hooks/mutations/task/use-update-task-due-date";
+import { useDoneHoursPrompt } from "@/hooks/use-done-hours-prompt";
 import { useUpdateTaskStatus } from "@/hooks/mutations/task/use-update-task-status";
 import { useUpdateTaskPriority } from "@/hooks/mutations/task/use-update-task-status-priority";
 import { useUpdateTaskTitle } from "@/hooks/mutations/task/use-update-task-title";
@@ -77,6 +78,7 @@ export default function TaskCardContextMenuContent({
   const { mutateAsync: updateTask } = useUpdateTask();
   const { mutateAsync: updateTaskPriority } = useUpdateTaskPriority();
   const { mutateAsync: updateTaskStatus } = useUpdateTaskStatus();
+  const promptDoneHours = useDoneHoursPrompt();
   const { mutateAsync: updateTaskAssignee } = useUpdateTaskAssignee();
   const { mutateAsync: updateTaskTitle } = useUpdateTaskTitle();
   const { mutateAsync: updateTaskDescription } = useUpdateTaskDescription();
@@ -134,6 +136,14 @@ export default function TaskCardContextMenuContent({
           break;
         case "status":
           await updateTaskStatus({ ...task, status: value as string });
+          void promptDoneHours([
+            {
+              task,
+              fromStatus: task.status,
+              toStatus: value as string,
+              toColumns: columns,
+            },
+          ]);
           break;
         case "userId":
           await updateTaskAssignee({ ...task, userId: value as string });

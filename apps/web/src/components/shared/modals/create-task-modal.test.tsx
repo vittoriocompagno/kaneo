@@ -47,7 +47,6 @@ let projects: { id: string; name: string; slug: string }[] | undefined;
 let columnsError = false;
 let columnsFetching = false;
 const refetchColumns = vi.fn();
-const createTimeEntry = vi.fn(async (input: Record<string, unknown>) => input);
 let projectColumns:
   | { id: string; slug: string; name: string; isFinal: boolean }[]
   | undefined;
@@ -125,10 +124,6 @@ vi.mock("@/hooks/mutations/label/use-create-label", () => ({
 
 vi.mock("@/hooks/mutations/task/use-create-task", () => ({
   default: () => ({ mutateAsync: createTask }),
-}));
-
-vi.mock("@/hooks/mutations/time-entry/use-create-time-entry", () => ({
-  default: () => ({ mutateAsync: createTimeEntry }),
 }));
 
 vi.mock("@/hooks/mutations/task/use-delete-task", () => ({
@@ -680,8 +675,8 @@ describe("CreateTaskModal context isolation", () => {
   });
 });
 
-describe("CreateTaskModal hours", () => {
-  function fillAndSubmit(hours: string, note?: string) {
+describe("CreateTaskModal estimate", () => {
+  function fillAndSubmit(estimate: string) {
     render(<CreateTaskModal open onClose={vi.fn()} projectId="project-1" />, {
       wrapper: createWrapper(),
     });
@@ -689,73 +684,43 @@ describe("CreateTaskModal hours", () => {
       screen.getByPlaceholderText(
         "common:modals.createTask.taskTitlePlaceholder",
       ),
-      { target: { value: "Task with hours" } },
+      { target: { value: "Task with estimate" } },
     );
     fireEvent.change(
-      screen.getByPlaceholderText("common:modals.createTask.hoursPlaceholder"),
-      { target: { value: hours } },
+      screen.getByPlaceholderText(
+        "common:modals.createTask.estimatePlaceholder",
+      ),
+      { target: { value: estimate } },
     );
-    if (note) {
-      fireEvent.change(
-        screen.getByPlaceholderText(
-          "common:modals.createTask.hoursNotePlaceholder",
-        ),
-        { target: { value: note } },
-      );
-    }
     fireEvent.submit(document.querySelector("form") as HTMLFormElement);
   }
 
-  it("logs a finished time entry for the new task, accepting a decimal comma", async () => {
-    const before = Date.now();
-    fillAndSubmit("1,5", " sopralluogo ");
+  it("sends the estimate as whole minutes, accepting a decimal comma", async () => {
+    fillAndSubmit("1,5");
 
-    await vi.waitFor(() => expect(createTimeEntry).toHaveBeenCalledTimes(1));
-    const call = createTimeEntry.mock.calls[0]?.[0] as {
-      taskId: string;
-      description: string;
-      startTime: string;
-      endTime: string;
-    };
-    expect(call.taskId).toBe("task-1");
-    expect(call.description).toBe("sopralluogo");
-    const end = new Date(call.endTime).getTime();
-    expect(end).toBeGreaterThanOrEqual(before);
-    expect(end - new Date(call.startTime).getTime()).toBe(90 * 60 * 1000);
+    await vi.waitFor(() => expect(createTask).toHaveBeenCalledTimes(1));
+    expect(createTask.mock.calls[0]?.[0]).toMatchObject({
+      estimatedMinutes: 90,
+    });
   });
 
-  it("logs nothing when the hours field is blank", async () => {
+  it("sends no estimate when the field is blank", async () => {
     fillAndSubmit("");
 
     await vi.waitFor(() => expect(createTask).toHaveBeenCalledTimes(1));
-    expect(createTimeEntry).not.toHaveBeenCalled();
+    expect(createTask.mock.calls[0]?.[0]).toMatchObject({
+      estimatedMinutes: undefined,
+    });
   });
 
-  it("refuses invalid hours before creating the task", async () => {
+  it("refuses an invalid estimate before creating the task", async () => {
     fillAndSubmit("abc");
 
     await vi.waitFor(() =>
       expect(toastError).toHaveBeenCalledWith(
-        "common:modals.createTask.hoursInvalid",
+        "common:modals.createTask.estimateInvalid",
       ),
     );
     expect(createTask).not.toHaveBeenCalled();
-    expect(createTimeEntry).not.toHaveBeenCalled();
-  });
-
-  it("keeps the task and reports it when the time entry fails", async () => {
-    createTimeEntry.mockRejectedValueOnce(new Error("boom"));
-    const consoleError = vi
-      .spyOn(console, "error")
-      .mockImplementation(() => {});
-    fillAndSubmit("2");
-
-    await vi.waitFor(() =>
-      expect(toastError).toHaveBeenCalledWith(
-        "common:modals.createTask.hoursSaveError",
-      ),
-    );
-    expect(createTask).toHaveBeenCalledTimes(1);
-    consoleError.mockRestore();
   });
 });

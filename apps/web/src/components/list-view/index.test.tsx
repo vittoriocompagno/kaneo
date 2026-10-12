@@ -20,6 +20,7 @@ const m = vi.hoisted(() => ({
     taskCount?: number;
   },
   mutate: vi.fn(),
+  promptDoneHours: vi.fn(),
   setProject: vi.fn(),
 }));
 vi.mock("@dnd-kit/core", async (original) => ({
@@ -35,6 +36,9 @@ vi.mock("@/hooks/use-keyboard-shortcuts", () => ({
 }));
 vi.mock("@/hooks/mutations/task/use-update-task", () => ({
   useUpdateTask: () => ({ mutate: m.mutate }),
+}));
+vi.mock("@/hooks/use-done-hours-prompt", () => ({
+  useDoneHoursPrompt: () => m.promptDoneHours,
 }));
 vi.mock("@/store/project", () => ({
   default: () => ({ setProject: m.setProject }),
@@ -123,4 +127,64 @@ it("blocks archive-all during pagination or errors, including an already-open co
   act(() => m.archive.onConfirm?.());
   expect(m.mutate).toHaveBeenCalledTimes(2);
   expect(m.setProject).toHaveBeenCalledOnce();
+});
+
+function boardWithDone() {
+  return {
+    id: "p",
+    workspaceId: "w",
+    columns: [
+      {
+        id: "todo",
+        slug: "todo",
+        name: "To do",
+        isFinal: false,
+        tasks: [
+          { id: "a", title: "Task A", projectId: "p", status: "todo" },
+          { id: "b", title: "Task B", projectId: "p", status: "todo" },
+        ],
+      },
+      { id: "done", slug: "done", name: "Done", isFinal: true, tasks: [] },
+    ],
+    plannedTasks: [],
+    archivedTasks: [],
+  } as unknown as ProjectWithTasks;
+}
+
+it("asks for hours after a drag into a final column is saved", () => {
+  render(<ListView project={boardWithDone()} />);
+  act(() =>
+    m.props.onDragEnd?.({
+      active: { id: "a" },
+      over: { id: "done" },
+    } as DragEndEvent),
+  );
+  const [, options] = m.mutate.mock.calls.find(
+    ([task]) => task.id === "a" && task.status === "done",
+  ) ?? [undefined, undefined];
+  expect(options?.onSuccess).toBeTypeOf("function");
+  expect(m.promptDoneHours).not.toHaveBeenCalled();
+
+  options.onSuccess();
+  expect(m.promptDoneHours).toHaveBeenCalledWith([
+    expect.objectContaining({
+      task: expect.objectContaining({ id: "a", title: "Task A" }),
+      fromStatus: "todo",
+      toStatus: "done",
+    }),
+  ]);
+});
+
+it("does not ask for hours when reordering inside a column", () => {
+  render(<ListView project={boardWithDone()} />);
+  act(() =>
+    m.props.onDragEnd?.({
+      active: { id: "a" },
+      over: { id: "b" },
+    } as DragEndEvent),
+  );
+  expect(m.mutate).toHaveBeenCalled();
+  for (const [, options] of m.mutate.mock.calls)
+    expect(options).toBeUndefined();
+  expect(m.promptDoneHours).not.toHaveBeenCalled();
 });

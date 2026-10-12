@@ -178,12 +178,9 @@
 					"crimson": "Carmesí"
 				},
 				"statusLoadError": "Project statuses couldn’t be loaded.",
-				"hours": "Hours spent",
-				"hoursInvalid": "Enter hours as a positive number, e.g. 1.5",
-				"hoursNote": "Time entry note",
-				"hoursNotePlaceholder": "What you worked on (optional)",
-				"hoursPlaceholder": "e.g. 1.5",
-				"hoursSaveError": "Task created, but the hours could not be saved."
+				"estimate": "Estimated hours",
+				"estimateInvalid": "Enter the estimate as a positive number of hours, e.g. 1.5",
+				"estimatePlaceholder": "e.g. 1.5"
 			}
 		},
 		"boolean": {
@@ -2586,7 +2583,9 @@
 			"taskBranchCopied": "Nombre de la rama copiado",
 			"start": "Comenzar",
 			"startDate": "Fecha de inicio",
-			"noDate": "Sin fecha"
+			"noDate": "Sin fecha",
+			"estimate": "Estimated hours",
+			"estimateValue": "Estimated: {{value}}"
 		},
 		"popover": {
 			"assignee": {
@@ -2630,6 +2629,13 @@
 					"rose": "Rosa",
 					"crimson": "Carmesí"
 				}
+			},
+			"estimate": {
+				"clear": "Clear estimate",
+				"label": "Estimated hours",
+				"placeholder": "e.g. 1.5",
+				"updateError": "Could not update the estimate",
+				"save": "Save"
 			}
 		},
 		"backlog": {
@@ -2862,6 +2868,21 @@
 		},
 		"dashboard": {
 			"title": "Dashboard"
+		},
+		"doneHours": {
+			"description": "How long did \"{{title}}\" take?",
+			"estimatedHint": "Estimated: {{value}}",
+			"hoursLabel": "Hours spent",
+			"hoursPlaceholder": "e.g. 1.5",
+			"invalid": "Enter hours as a positive number, e.g. 1.5",
+			"moreWaiting": "{{waiting}} more after this one",
+			"noteLabel": "Note",
+			"notePlaceholder": "What you worked on (optional)",
+			"save": "Save",
+			"saveError": "The hours could not be saved. Try again or skip.",
+			"skip": "Skip",
+			"skipAll": "Skip all",
+			"title": "Hours spent"
 		}
 	},
 	"invitations": {
@@ -3039,7 +3060,9 @@
 				"ofTotal_other": "of {{count}} tasks",
 				"overdue": "Overdue",
 				"progress": "Progress",
-				"remaining": "Tasks remaining"
+				"remaining": "Tasks remaining",
+				"estimated": "Estimated hours",
+				"estimatedValue": "Estimated: {{value}}"
 			},
 			"subprojects": {
 				"count_many": "{{count}} subprojects",

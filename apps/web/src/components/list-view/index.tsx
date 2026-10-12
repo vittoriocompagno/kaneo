@@ -25,6 +25,8 @@ import { Archive, ChevronRight, Flag, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { priorityColorsTaskCard } from "@/constants/priority-colors";
+import { toPromptTask } from "@/lib/done-hours";
+import { useDoneHoursPrompt } from "@/hooks/use-done-hours-prompt";
 import { useUpdateTask } from "@/hooks/mutations/task/use-update-task";
 import { useRegisterShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { cn } from "@/lib/cn";
@@ -59,6 +61,7 @@ function ListView({
   const focusedTaskId = useBulkSelectionStore((state) => state.focusedTaskId);
   const clearFocus = useBulkSelectionStore((state) => state.clearFocus);
   const { mutate: updateTask } = useUpdateTask();
+  const promptDoneHours = useDoneHoursPrompt();
   const navigate = useNavigate();
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
   const [overColumnId, setOverColumnId] = useState<string | null>(null);
@@ -214,6 +217,11 @@ function ListView({
           });
         });
       } else {
+        // Plain copies: the immer draft is revoked once produce returns, long
+        // before the save callback below runs.
+        const fromStatus = task.status;
+        const toStatus = destinationColumn.slug;
+        const movedTask = toPromptTask(task);
         // A task's status is a column slug. The column id is only the
         // droppable identity here, and the two are interchangeable only
         // because the tasks endpoint happens to return `id: column.slug`.
@@ -226,11 +234,27 @@ function ListView({
         destinationColumn.tasks.splice(destinationIndex, 0, task);
 
         destinationColumn.tasks.forEach((t, index) => {
-          updateTask({
-            ...t,
-            status: destinationColumn.slug,
-            position: index,
-          });
+          updateTask(
+            {
+              ...t,
+              status: destinationColumn.slug,
+              position: index,
+            },
+            t.id === task.id
+              ? {
+                  onSuccess: () =>
+                    void promptDoneHours([
+                      {
+                        task: movedTask,
+                        fromStatus,
+                        toStatus,
+                        fromColumns: project.columns,
+                        toColumns: project.columns,
+                      },
+                    ]),
+                }
+              : undefined,
+          );
         });
 
         sourceColumn.tasks.forEach((t, index) => {

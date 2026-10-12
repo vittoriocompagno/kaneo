@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import { hoursToRange, parseHours } from "./parse-hours";
+import {
+  hoursToMinutes,
+  hoursToRange,
+  minutesToHoursInput,
+  parseHours,
+} from "./parse-hours";
 
 describe("parseHours", () => {
   it("treats blank input as no time logged", () => {
@@ -30,5 +35,37 @@ describe("hoursToRange", () => {
       startTime: "2026-10-12T10:30:00.000Z",
       endTime: "2026-10-12T12:00:00.000Z",
     });
+  });
+});
+
+describe("hoursToMinutes", () => {
+  it.each([
+    [1, 60],
+    [1.5, 90],
+    [0.25, 15],
+    [0.1, 6],
+    [2.505, 150],
+  ])("%s h -> %i min", (hours, minutes) => {
+    expect(hoursToMinutes(hours)).toBe(minutes);
+  });
+
+  it("never rounds a real estimate down to zero", () => {
+    expect(hoursToMinutes(0.001)).toBe(1);
+  });
+});
+
+describe("minutesToHoursInput", () => {
+  it.each([
+    [90, "1,5"],
+    [60, "1"],
+    [15, "0,25"],
+    [20, "0,33"],
+  ])("%i min -> %s", (minutes, text) => {
+    expect(minutesToHoursInput(minutes)).toBe(text);
+  });
+
+  it("round-trips through the parser", () => {
+    const parsed = parseHours(minutesToHoursInput(150));
+    expect(parsed).toEqual({ status: "ok", hours: 2.5 });
   });
 });

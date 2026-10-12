@@ -25,6 +25,7 @@ import useCreateTask from "@/hooks/mutations/task/use-create-task";
 import { useDeleteTask } from "@/hooks/mutations/task/use-delete-task";
 import { useUpdateTaskStatus } from "@/hooks/mutations/task/use-update-task-status";
 import useCreateTaskRelation from "@/hooks/mutations/task-relation/use-create-task-relation";
+import { useDoneHoursPrompt } from "@/hooks/use-done-hours-prompt";
 import { useGetColumns } from "@/hooks/queries/column/use-get-columns";
 import useGetTaskRelations from "@/hooks/queries/task-relation/use-get-task-relations";
 import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
@@ -67,6 +68,7 @@ export default function TaskSubtasks({
   const createRelation = useCreateTaskRelation();
   const { mutateAsync: deleteTask } = useDeleteTask();
   const { mutateAsync: updateTaskStatus } = useUpdateTaskStatus();
+  const promptDoneHours = useDoneHoursPrompt();
   const { data: columns = [], isLoading: isLoadingColumns } =
     useGetColumns(projectId);
   const { canCreateTasks, canUpdateTasks } = useWorkspacePermission();
@@ -153,6 +155,14 @@ export default function TaskSubtasks({
         return;
       }
       await updateTaskStatus({ ...taskObj, status: nextColumn.slug });
+      void promptDoneHours([
+        {
+          task: taskObj,
+          fromStatus: taskObj.status,
+          toStatus: nextColumn.slug,
+          toColumns: taskColumns,
+        },
+      ]);
     } catch (error) {
       toast.error(
         error instanceof Error
